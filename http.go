@@ -184,8 +184,10 @@ func logoutHandler(c *gin.Context) {
 	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
 	if verifyToken(playerName, token) {
-		success = http.StatusOK
+		c.SetCookie("token", "", 0, "/", "", true, true)
+		c.SetCookie("player", "", 0, "/", "", true, true)
 		removeToken(playerName)
+		success = http.StatusOK
 	} else {
 		err = errors.New("not logged in")
 	}
