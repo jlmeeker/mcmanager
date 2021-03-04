@@ -85,6 +85,7 @@ function refreshCard(status) {
   document.getElementById("players_"+status.uuid).innerText = status.players;
   document.getElementById("flavor_"+status.uuid).innerText = status.flavor;
   document.getElementById("ops_"+status.uuid).innerText = status.ops;
+  document.getElementById("release_"+status.uuid).innerText = status.release;
 
   if (status.running) {
     document.getElementById("startIndicator_"+status.uuid).classList.add("hidden");

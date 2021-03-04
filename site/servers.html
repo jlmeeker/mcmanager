@@ -6,12 +6,12 @@
     <div id="card_{{.UUID}}" class="col-sm-6 col-lg-4 mb-4">
         <div class="card shadow">
             <h4 class="card-header">
-                {{.Name}} ({{.Release}})
+                {{.Name}}
                 <div class="mb-0" style="float: right;">
                     <small>
                         {{template "runnningindicator" .}}
                         <a href="#" onclick="deleteServer('{{.UUID}}')" alt="delete server"><i class="bi-trash2 text-danger"></i></a>
-                        <!-- <a href="#" onclick="" alt="delete server"><i class="bi-gear text-primary"></i></a> -->
+                        <!-- <a href="#" onclick="" alt="configure server"><i class="bi-gear text-primary"></i></a> -->
                     </small>
                 </div>
             </h4>
@@ -20,6 +20,7 @@
                 <br />
                 <p class="card-text">
                     <strong>Flavor:</strong> <span id="flavor_{{.UUID}}">{{.Flavor}}</span><br />
+                    <strong>Release:</strong> <span id="release_{{.UUID}}">{{.Release}}</span><br />
                     <strong>Port:</strong> <span id="port_{{.UUID}}">{{.Port}}</span><br />
                     <strong>Autostart:</strong> <span id="autostart_{{.UUID}}">{{.AutoStart}}</span><br />
                     <strong>Ops:</strong> <span id="ops_{{.UUID}}">{{.Ops}}</span><br />
