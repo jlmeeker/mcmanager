@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,9 +14,9 @@ import (
 var embededFiles embed.FS
 
 func getFileSystem() fs.FS {
-	if gin.Mode() == gin.DebugMode {
-		return os.DirFS("site")
-	}
+	//if gin.Mode() == gin.DebugMode {
+	//	return os.DirFS("site")
+	//}
 
 	fsys, err := fs.Sub(embededFiles, "site")
 	if err != nil {
