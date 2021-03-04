@@ -1,0 +1,38 @@
+{{define "servers"}}
+<script>setInterval(fetchServerStatuses, 5000);</script>
+<div class="row py-5">
+    {{- if .Servers.List}}
+    {{- range .Servers.List}}
+    <div id="card_{{.Name}}" class="col-sm-6 col-lg-4 mb-4">
+        <div class="card shadow">
+            <h4 class="card-header">{{.Name}} ({{.Release}})</h4>
+            <div class="card-body servercard">
+                <h5 class="card-title">{{.MOTD}}</h5>
+                <br />
+                <p class="card-text">
+                    <strong>Flavor:</strong> <span id="flavor_{{.Name}}">{{.Flavor}}</span><br />
+                    <strong>Port:</strong> <span id="port_{{.Name}}">{{.Port}}</span><br />
+                    <strong>Autostart:</strong> <span id="autostart_{{.Name}}">{{.AutoStart}}</span><br />
+                    <strong>Ops:</strong> <span id="ops_{{.Name}}">{{.Ops}}</span><br />
+                    <strong>Players:</strong> <span id="players_{{.Name}}">{{.Players}}</span><br />
+                </p>
+                {{- if .Running}}
+                <button id="btn_{{.Name}}" type="button" class="btn btn-warning" onclick="stopServer('{{.Name}}')">Stop</button>
+                {{- else}}
+                <button id="btn_{{.Name}}" type="button" class="btn btn-success" onclick="startServer('{{.Name}}')">Start</button>
+                {{- end}}
+                <button type="button" class="btn btn-danger" onclick="deleteServer('{{.Name}}')">DELETE</button>
+            </div>
+        </div>
+    </div>
+    {{- end}}
+    {{- else}}
+    <div class="text-center lead text-muted">
+        <p>Wow, looks pretty empty here...</p>
+        <br />
+        <p>Time to get your first server up and running.<br />
+            Click the <i class="bi bi-minecart-loaded text-success"></i> button at the top of the page.</p>
+    </div>
+    {{- end}}
+</div>
+{{- end}}

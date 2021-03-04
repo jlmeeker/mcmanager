@@ -1,0 +1,24 @@
+{{define "releases" -}}
+{{- $release := .Vanilla.Latest.Release}}
+{{- $snapshot := .Vanilla.Latest.Snapshot}}
+<div id="releases" class="row py-5">
+    <div class="col-sm-6 col-lg-4 mb-4">
+        <div class="card shadow text-center">
+            <h4 class="card-header bg-success text-white">Latest Vanilla Release</h4>
+            <div class="card-body bg-light">
+                <h5 class="card-text">{{.Vanilla.Latest.Release}}</h5>
+                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $release .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4 mb-4">
+        <div class="card shadow text-center">
+            <h4 class="card-header bg-warning">Latest Vanilla Snapshot</h4>
+            <div class="card-body bg-light">
+                <h5 class="card-text">{{.Vanilla.Latest.Snapshot}}</h5>
+                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $snapshot .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
