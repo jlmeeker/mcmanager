@@ -1,4 +1,4 @@
-module mcmanager
+module github.com/jlmeeker/mcmanager
 
 go 1.16
 

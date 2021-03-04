@@ -8,7 +8,7 @@ Note that we will try our best to avoid any backward incompatibility.  If we do 
 
 ## About
 
-MCmanager is a web front-end for managing any number of locally running Minecraft servers. It lets you...
+MCmanager is a web front-end for managing any number of locally running Minecraft servers. The interface is designed with both mobile and desktop in mind. It lets you...
 
 * Self-contained, single binary.  Just build/install and run (no need to place HTML template files anywyere... that isn't supported right now anyway)
 * Running Minecraft server instances aren't attached to the mcmanager process, so restarting mcmanager (should) be fine and not kill any running servers.
@@ -33,7 +33,7 @@ TBD
 Ensure you have Go >= 1.16.0 installed and set up on your machine, then run the following command:
 
 ```
-$ go install github.com/jlmeeker/mcmanager/... 
+$ go install github.com/jlmeeker/mcmanager@latest 
 ```
 
 ## CLI Reference
