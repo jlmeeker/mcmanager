@@ -3,25 +3,25 @@
 <div class="row py-5">
     {{- if .Servers.List}}
     {{- range .Servers.List}}
-    <div id="card_{{.Name}}" class="col-sm-6 col-lg-4 mb-4">
+    <div id="card_{{.UUID}}" class="col-sm-6 col-lg-4 mb-4">
         <div class="card shadow">
             <h4 class="card-header">{{.Name}} ({{.Release}})</h4>
             <div class="card-body servercard">
                 <h5 class="card-title">{{.MOTD}}</h5>
                 <br />
                 <p class="card-text">
-                    <strong>Flavor:</strong> <span id="flavor_{{.Name}}">{{.Flavor}}</span><br />
-                    <strong>Port:</strong> <span id="port_{{.Name}}">{{.Port}}</span><br />
-                    <strong>Autostart:</strong> <span id="autostart_{{.Name}}">{{.AutoStart}}</span><br />
-                    <strong>Ops:</strong> <span id="ops_{{.Name}}">{{.Ops}}</span><br />
-                    <strong>Players:</strong> <span id="players_{{.Name}}">{{.Players}}</span><br />
+                    <strong>Flavor:</strong> <span id="flavor_{{.UUID}}">{{.Flavor}}</span><br />
+                    <strong>Port:</strong> <span id="port_{{.UUID}}">{{.Port}}</span><br />
+                    <strong>Autostart:</strong> <span id="autostart_{{.UUID}}">{{.AutoStart}}</span><br />
+                    <strong>Ops:</strong> <span id="ops_{{.UUID}}">{{.Ops}}</span><br />
+                    <strong>Players:</strong> <span id="players_{{.UUID}}">{{.Players}}</span><br />
                 </p>
                 {{- if .Running}}
-                <button id="btn_{{.Name}}" type="button" class="btn btn-warning" onclick="stopServer('{{.Name}}')">Stop</button>
+                <button id="btn_{{.UUID}}" type="button" class="btn btn-warning" onclick="stopServer('{{.UUID}}')">Stop</button>
                 {{- else}}
-                <button id="btn_{{.Name}}" type="button" class="btn btn-success" onclick="startServer('{{.Name}}')">Start</button>
+                <button id="btn_{{.UUID}}" type="button" class="btn btn-success" onclick="startServer('{{.UUID}}')">Start</button>
                 {{- end}}
-                <button type="button" class="btn btn-danger" onclick="deleteServer('{{.Name}}')">DELETE</button>
+                <button type="button" class="btn btn-danger" onclick="deleteServer('{{.UUID}}')">DELETE</button>
             </div>
         </div>
     </div>

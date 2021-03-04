@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/jlmeeker/go-yggdrasil v0.0.0-20190217235831-da2277110cf6
 	github.com/jlmeeker/mc-rcon v1.0.0
 	github.com/leodido/go-urn v1.2.1 // indirect

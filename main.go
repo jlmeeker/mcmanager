@@ -121,7 +121,7 @@ func loadServers() error {
 			if err != nil {
 				fmt.Printf("error loading %s: %s\n", entrydir, err.Error())
 			} else {
-				servers[s.Name] = s
+				servers[s.UUID] = s
 			}
 		}
 	}

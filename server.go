@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // FLAVORS is a list of supported minecraft flavors
@@ -27,6 +29,7 @@ type Server struct {
 	MinMem    string           `json:"minmem"`
 	AutoStart bool             `json:"autostart"`
 	Flavor    string           `json:"flavor"`
+	UUID      string           `json:"uuid"`
 }
 
 // NewServer creates a new instance of Server, and sets up the serverdir
@@ -41,7 +44,11 @@ func NewServer(owner string, formData CreateForm, port int) (Server, error) {
 
 	var err error
 	var props ServerProperties
+	var suuid uuid.UUID
 	for err == nil {
+		suuid, err = uuid.NewRandom()
+		s.UUID = suuid.String()
+
 		if !inList(s.Flavor, FLAVORS) {
 			err = errors.New("invalid flavor")
 		}
@@ -181,7 +188,7 @@ func (s *Server) Save() error {
 
 // ServerDir builds the path to the server storage dir
 func (s *Server) ServerDir() string {
-	return filepath.Join(STORAGEDIR, "servers", s.Name)
+	return filepath.Join(STORAGEDIR, "servers", s.UUID)
 }
 
 // Stop broadcasts a message to the server then stops it after the delay
@@ -246,6 +253,7 @@ type ServerWebView struct {
 	MOTD      string `json:"motd"`
 	Flavor    string `json:"flavor"`
 	Ops       string `json:"ops"`
+	UUID      string `json:"uuid"`
 }
 
 func opServersWebView(opName string) map[string]ServerWebView {
@@ -268,6 +276,7 @@ func opServersWebView(opName string) map[string]ServerWebView {
 			MOTD:      s.Props["motd"],
 			Flavor:    s.Flavor,
 			Ops:       strings.Join(ops, ", "),
+			UUID:      s.UUID,
 		}
 	}
 

@@ -56,29 +56,29 @@ function refreshServerCards(data) {
 
 function refreshCard(status) {
   try {
-    var card = document.getElementById("card_"+status.name);
+    var card = document.getElementById("card_"+status.uuid);
     var junk = card.innerText;
   } 
   catch(err) {
     console.log(err);
     return;
   }
-  document.getElementById("port_"+status.name).innerText = status.port;
-  document.getElementById("autostart_"+status.name).innerText = status.autostart;
-  document.getElementById("players_"+status.name).innerText = status.players;
-  document.getElementById("flavor_"+status.name).innerText = status.flavor;
-  document.getElementById("ops_"+status.name).innerText = status.ops;
+  document.getElementById("port_"+status.uuid).innerText = status.port;
+  document.getElementById("autostart_"+status.uuid).innerText = status.autostart;
+  document.getElementById("players_"+status.uuid).innerText = status.players;
+  document.getElementById("flavor_"+status.uuid).innerText = status.flavor;
+  document.getElementById("ops_"+status.uuid).innerText = status.ops;
 
-  var btn = document.getElementById("btn_"+status.name);
+  var btn = document.getElementById("btn_"+status.uuid);
   if (status.running) {
     btn.classList.remove("btn-success");
     btn.classList.add("btn-warning");
-    btn.onclick = function() { stopServer(status.name); };
+    btn.onclick = function() { stopServer(status.uuid); };
     btn.innerText = "Stop";
   } else {
     btn.classList.remove("btn-warning");
     btn.classList.add("btn-success");
-    btn.onclick = function() { startServer(status.name); };
+    btn.onclick = function() { startServer(status.uuid); };
     btn.innerText = "Start";
   }
 }
