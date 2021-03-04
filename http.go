@@ -26,7 +26,7 @@ func getFileSystem() fs.FS {
 	return fsys
 }
 
-func listen() {
+func listen(addr string) {
 	webfiles := getFileSystem()
 	t, err := template.ParseFS(webfiles, "*.html")
 	if err != nil {
@@ -59,7 +59,7 @@ func listen() {
 		v1.POST("/logout", logoutHandler)
 	}
 
-	router.Run() // listen and serve on 0.0.0.0:8080
+	router.Run(addr)
 }
 
 // PageData defines data that is passed to HTML templates

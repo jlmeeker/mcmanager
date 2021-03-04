@@ -20,6 +20,7 @@ var Servers = make(map[string]Server)
 // Flags
 var (
 	flagStorageDir = flag.String("storage", "", "where to store server data")
+	flagListenAddr = flag.String("listen", "127.0.0.1:8080", "address to listen for http traffic")
 )
 
 func main() {
@@ -73,7 +74,7 @@ func main() {
 		}
 	}
 
-	listen()
+	listen(*flagListenAddr)
 }
 
 func inList(needle string, haystack []string) bool {
