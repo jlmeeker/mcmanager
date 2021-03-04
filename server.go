@@ -141,7 +141,7 @@ func (s Server) Start() error {
 		return err
 	}
 
-	return cmd.Wait()
+	return cmd.Process.Release()
 }
 
 // Backup will instruct the server to perform a save-all operation
