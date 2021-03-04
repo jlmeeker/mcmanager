@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -237,7 +238,10 @@ func startHandler(c *gin.Context) {
 	playerName, _ := c.Cookie("player")
 	if verifyToken(playerName, token) {
 		if s, ok := Servers[serverID]; ok {
-			s.Start()
+			err = s.Start()
+			if err != nil {
+				fmt.Printf("WARNING server start unable to fork: %s\n", err.Error())
+			}
 			success = http.StatusOK
 		} else {
 			success = http.StatusNotFound

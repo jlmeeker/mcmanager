@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 )
@@ -67,6 +68,24 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
+	// Catch interrupt and ask all servers to backup (just in case they get culled when we exit)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	go func() {
+		for sig := range c {
+			fmt.Printf("Received %s... backing up all running servers\n", sig.String())
+			for _, s := range Servers {
+				if s.IsRunning() {
+					err := s.Backup()
+					if err != nil {
+						fmt.Printf(err.Error())
+					}
+				}
+			}
+			os.Exit(0)
+		}
+	}()
 
 	for _, instance := range Servers {
 		if instance.AutoStart {

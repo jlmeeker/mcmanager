@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -122,20 +123,35 @@ func (s *Server) Players() string {
 }
 
 // Start starts the server (expected to be run as a goroutine)
-func (s *Server) Start() error {
+func (s Server) Start() error {
 	if s.IsRunning() {
 		return errors.New("server already running")
 	}
 
+	var args = []string{"-Xms512M", "-Xmx2G", "-jar", s.Release + ".jar", "--nogui"}
 	var cwd = s.ServerDir()
-	var cmd = exec.Command("java", "-Xms512M", "-Xmx2G", "-jar", s.Release+".jar", "--nogui")
+	var cmd = exec.Command("java", args...)
 	cmd.Dir = cwd
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
 	err := cmd.Start()
 	if err != nil {
 		return err
 	}
 
-	return cmd.Process.Release()
+	return cmd.Wait()
+}
+
+// Backup will instruct the server to perform a save-all operation
+func (s *Server) Backup() error {
+	_, err := s.Rcon("save-all")
+	if err != nil {
+		return err
+	}
+	time.Sleep(2 * time.Second)
+	return nil
 }
 
 // Rcon sends a message to the server's rcon
