@@ -18,7 +18,7 @@
                 </div>
             </div>
             {{if .Authenticated}}
-                {{template "logoutbutton"}}
+                {{template "logoutbutton" .PlayerName}}
             {{else}}
                 {{template "loginbutton"}}
             {{end}}
@@ -42,7 +42,7 @@
 {{- end}}
 
 {{define "logoutbutton" -}}
-({{.PlayerName}})
+({{.}})
 <button type="button" class="btn btn-primary btn-sm"  onclick="logout()">
     Log Out
 </button>
