@@ -42,8 +42,6 @@
 {{- end}}
 
 {{define "logoutbutton" -}}
-({{.}})
-<button type="button" class="btn btn-primary btn-sm"  onclick="logout()">
-    Log Out
-</button>
+{{.}} 
+<a href="#" onclick="logout()" alt="log out"><i class="bi-lock-fill text-danger"></i></a>
 {{- end}}

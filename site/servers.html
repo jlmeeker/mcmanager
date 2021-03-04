@@ -5,7 +5,16 @@
     {{- range .Servers.List}}
     <div id="card_{{.UUID}}" class="col-sm-6 col-lg-4 mb-4">
         <div class="card shadow">
-            <h4 class="card-header">{{.Name}} ({{.Release}})</h4>
+            <h4 class="card-header">
+                {{.Name}} ({{.Release}})
+                <div class="mb-0" style="float: right;">
+                    <small>
+                        {{template "runnningindicator" .}}
+                        <a href="#" onclick="deleteServer('{{.UUID}}')" alt="delete server"><i class="bi-trash2 text-danger"></i></a>
+                        <!-- <a href="#" onclick="" alt="delete server"><i class="bi-gear text-primary"></i></a> -->
+                    </small>
+                </div>
+            </h4>
             <div class="card-body servercard">
                 <h5 class="card-title">{{.MOTD}}</h5>
                 <br />
@@ -16,12 +25,6 @@
                     <strong>Ops:</strong> <span id="ops_{{.UUID}}">{{.Ops}}</span><br />
                     <strong>Players:</strong> <span id="players_{{.UUID}}">{{.Players}}</span><br />
                 </p>
-                {{- if .Running}}
-                <button id="btn_{{.UUID}}" type="button" class="btn btn-warning" onclick="stopServer('{{.UUID}}')">Stop</button>
-                {{- else}}
-                <button id="btn_{{.UUID}}" type="button" class="btn btn-success" onclick="startServer('{{.UUID}}')">Start</button>
-                {{- end}}
-                <button type="button" class="btn btn-danger" onclick="deleteServer('{{.UUID}}')">DELETE</button>
             </div>
         </div>
     </div>
@@ -35,4 +38,9 @@
     </div>
     {{- end}}
 </div>
+{{- end}}
+
+{{- define "runnningindicator"}}
+    <a id="startIndicator_{{.UUID}}" href="#" onclick="startServer('{{.UUID}}')" class="{{if .Running}}hidden{{end}}" alt="start server"><i class="bi-play-fill text-success disabled"></i></a>
+    <a id="stopIndicator_{{.UUID}}" href="#" onclick="stopServer('{{.UUID}}')" class="{{if not .Running}}hidden{{end}}" alt="stop server"><i class="bi-stop-fill text-warning"></i></a>
 {{- end}}

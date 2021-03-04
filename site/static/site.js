@@ -16,7 +16,13 @@ function serverStartStop(id, action) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
-      console.log(this.responseText);
+      if (this.status == 200) {
+        document.getElementById('successToastBody').innerText = "Successfully "+action+"ed the server";
+        toastList[0].show(); // successToast
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        toastList[1].show(); // dangerToast
+      }
     }
   };
   xhttp.open("POST", "/v1/"+action+"/"+id, true);
@@ -27,9 +33,11 @@ function deleteServer(id) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
-      console.log(this.responseText);
       if (this.status == 200) {
         location.reload();
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        toastList[1].show(); // dangerToast
       }
     }
   };
@@ -40,8 +48,15 @@ function deleteServer(id) {
 function fetchServerStatuses() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      refreshServerCards(JSON.parse(this.responseText));
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        refreshServerCards(JSON.parse(this.responseText));
+      } else if (this.status == 403) {
+          // just keep silent, user isn't logged in
+      } else {
+          document.getElementById('dangerToastBody').innerText = "Error refreshing server statuses";
+          toastList[1].show(); // dangerToast
+      }
     }
   };
   xhttp.open("GET", "/v1/servers", true);
@@ -60,26 +75,23 @@ function refreshCard(status) {
     var junk = card.innerText;
   } 
   catch(err) {
-    console.log(err);
+    document.getElementById('dangerToastBody').innerText = "Could not refesh card for "+status.name;
+    toastList[1].show(); // dangerToast
     return;
   }
+
   document.getElementById("port_"+status.uuid).innerText = status.port;
   document.getElementById("autostart_"+status.uuid).innerText = status.autostart;
   document.getElementById("players_"+status.uuid).innerText = status.players;
   document.getElementById("flavor_"+status.uuid).innerText = status.flavor;
   document.getElementById("ops_"+status.uuid).innerText = status.ops;
 
-  var btn = document.getElementById("btn_"+status.uuid);
   if (status.running) {
-    btn.classList.remove("btn-success");
-    btn.classList.add("btn-warning");
-    btn.onclick = function() { stopServer(status.uuid); };
-    btn.innerText = "Stop";
+    document.getElementById("startIndicator_"+status.uuid).classList.add("hidden");
+    document.getElementById("stopIndicator_"+status.uuid).classList.remove("hidden");
   } else {
-    btn.classList.remove("btn-warning");
-    btn.classList.add("btn-success");
-    btn.onclick = function() { startServer(status.uuid); };
-    btn.innerText = "Start";
+    document.getElementById("startIndicator_"+status.uuid).classList.remove("hidden");
+    document.getElementById("stopIndicator_"+status.uuid).classList.add("hidden");
   }
 }
 
@@ -87,12 +99,13 @@ function submitForm(loc, form){
   var data = new FormData(form);
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      form.reset();
-      if (loc == "/v1/create") {
-        console.log(this.responseText);
-      } 
-      location.reload();
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        location.reload();
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        toastList[1].show(); // dangerToast
+      }
     }
   };
   xhttp.open("POST",loc, true);
@@ -104,7 +117,12 @@ function logout() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
-      location.reload();
+      if (this.status == 200) {
+        location.reload();
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        toastList[1].show(); // dangerToast
+      }
     }
   };
   xhttp.open("POST", "/v1/logout", true);
