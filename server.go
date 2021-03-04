@@ -373,7 +373,6 @@ func nextAvailablePort() int {
 			}
 			var portInt int
 			portInt, err = strconv.Atoi(port)
-			fmt.Printf("str: %s, int: %d\n", port, portInt)
 			if portInt > highest {
 				highest = portInt
 			}
