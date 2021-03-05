@@ -9,12 +9,12 @@ import (
 
 // NewsItem is the simplest form of data for a card on the "home" view
 type NewsItem struct {
-	Posted  string
-	Preview *goscraper.DocumentPreview
+	Posted  string                     `json:"posted"`
+	Preview *goscraper.DocumentPreview `json:"preview"`
 }
 
 // VanillaNews cached copy of the latest pulled vanilla news
-var VanillaNews []NewsItem
+var VanillaNews = []NewsItem{}
 
 func sitePreview(site string) *goscraper.Document {
 	p, e := goscraper.Scrape(site, 5)
@@ -36,7 +36,7 @@ func vanillaNews(max int) ([]NewsItem, error) {
 	for _, item := range feed.Items {
 		//Mon Jan 2 15:04:05 -0700 MST 2006
 		ni := NewsItem{
-			Posted:  item.PublishedParsed.Local().Format("2 Jan 2006 3:04 PM"),
+			Posted:  item.PublishedParsed.Local().Format("Jan 2, 2006"),
 			Preview: &sitePreview(item.Link).Preview,
 		}
 		items = append(items, ni)

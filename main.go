@@ -54,7 +54,7 @@ func main() {
 		var err error
 		for {
 			downloadLatestVanilla()
-			VanillaNews, _ = vanillaNews(25)
+			VanillaNews, _ = vanillaNews(10)
 			VanillaReleases, _ = getVanillaManifest()
 			if err != nil {
 				fmt.Println(err.Error())

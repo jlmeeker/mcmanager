@@ -1,24 +1,13 @@
 {{define "home" -}}
+<script>setInterval(fetchNews, 30000);</script>
 <div id="news" class="row py-5">
-    {{- if .News.Vanilla}}
-    {{- range .News.Vanilla}}
-    <div class="col-sm-6 col-lg-4 mb-4">
-        <div class="card shadow">
-            <a href="{{.Preview.Link}}" target="_blank"><img src="{{index .Preview.Images 0}}" class="card-img-top" alt="{{index .Preview.Images 0}}"></a>
-            <div class="card-body bg-light">
-                <h5 class="card-title">{{.Preview.Title}}</h5>
-                <p class="card-text">{{.Preview.Description}}</p>
-                <p class="card-text"><small class="text-muted">{{.Posted}} ({{.Preview.Name}})</small></p>
-            </div>
-        </div>
-    </div>
-    {{- end}}
-    {{- else}}
     <div class="text-center lead text-muted">
         <p>Um.... where'd the news go?</p>
         <br />
         <p>It is probably still loading.  Why don't you check on your <strong><a href="/view/servers">servers</a></strong> while you wait.</p>
     </div>
-    {{- end}}
 </div>
+<script>
+    fetchNews();
+</script>
 {{end}}

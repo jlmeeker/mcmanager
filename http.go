@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,6 +41,7 @@ func listen(addr string) {
 	}
 
 	router := gin.Default()
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.SetHTMLTemplate(t)
 	router.StaticFS("/img", http.FS(staticfiles))
 	router.StaticFS("/js", http.FS(staticfiles))
@@ -58,6 +60,7 @@ func listen(addr string) {
 		v1.POST("/stop/:serverid", stopHandler)
 		v1.POST("/login", loginHandler)
 		v1.POST("/logout", logoutHandler)
+		v1.GET("/news", newsHandler)
 	}
 
 	router.Run(addr)
@@ -77,9 +80,6 @@ type PageData struct {
 	}
 	Status struct {
 		Uptime string
-	}
-	News struct {
-		Vanilla []NewsItem
 	}
 }
 
@@ -310,9 +310,6 @@ func defaultHandler(c *gin.Context) {
 	switch page {
 	case "", "home":
 		pd.Page = "home"
-		if len(VanillaNews) >= 6 {
-			pd.News.Vanilla = VanillaNews[:10]
-		}
 	case "servers":
 		pd.Page = "servers"
 		pd.Servers.List = opServersWebView(playerName)
@@ -357,4 +354,8 @@ func serversHandler(c *gin.Context) {
 	result = opServersWebView(playerName)
 
 	c.JSON(200, result)
+}
+
+func newsHandler(c *gin.Context) {
+	c.JSON(200, VanillaNews)
 }
