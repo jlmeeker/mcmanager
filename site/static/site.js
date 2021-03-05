@@ -143,56 +143,27 @@ function refreshNews(data) {
 }
 
 function newNewsCard(item) {
-  var container = document.createElement("div");
-  container.classList.add("col-sm-6", "col-lg-4", "mb-4", "newsitem");
-
   var card = document.createElement("div");
-  card.classList.add("card", "shadow");
-
+  card.classList.add("col-sm-6", "col-lg-4", "mb-4", "newsitem");
+  card.id = item.uuid;
+  card.innerHTML =  `
+  <div class="card shadow">
+    <a href="`+item.preview.Link+`" target="_blank">
+      <img class="card-img-top" src="`+item.preview.Images[0]+`"></a>
+      <div class="card-body bg-light">
+        <h5 class="card-title">`+item.preview.Title+`</h5>
+        <p class="card-text">`+item.preview.Description+`</p>
+        <p class="card-text">
+          <small class="text-muted">`+item.posted+` (`+item.preview.Name+`)</small>
+        </p>
+      </div>
+    </div>
+  `;
   itemDate = new Date(item.posted);
   if (isToday(itemDate)) {
-    card.classList.add("today");
+    card.firstElementChild.classList.add("today");
   }
-
-  var cardimglink = document.createElement("a");
-  cardimglink.setAttribute("href", item.preview.Link);
-  cardimglink.setAttribute("target", "_blank");
-
-  var cardimg = document.createElement("img");
-  cardimg.classList.add("card-img-top");
-  cardimg.setAttribute("src", item.preview.Images[0]);
-  cardimg.setAttribute("class", "card-img-top");
-
-  var cardbody = document.createElement("div");
-  cardbody.classList.add("card-body", "bg-light");
-
-  var cardtitle = document.createElement("h5");
-  cardtitle.classList.add("card-title");
-  cardtitle.innerText = item.preview.Title;
-
-  var carddescr = document.createElement("p");
-  carddescr.classList.add("card-text");
-  carddescr.innerText = item.preview.Description;
-
-  var cardfooter = document.createElement("p");
-  cardfooter.classList.add("card-text");
-
-  var footertext = document.createElement("small");
-  footertext.classList.add("text-muted");
-  footertext.innerText = item.posted+" ("+item.preview.Name+")";
-
-  cardimglink.appendChild(cardimg);
-  cardfooter.appendChild(footertext);
-
-  cardbody.appendChild(cardtitle);
-  cardbody.appendChild(carddescr);
-  cardbody.appendChild(cardfooter);
-
-  card.appendChild(cardimglink);
-  card.appendChild(cardbody);
-
-  container.appendChild(card);
-  document.getElementById("news").appendChild(container);
+  document.getElementById("news").appendChild(card);
 }
 
 function isToday(d) {
@@ -240,8 +211,9 @@ function refreshServers(data) {
 
 function newServerCard(item) {
   var card = document.createElement("div");
+  card.classList.add("col-sm-6", "col-lg-4", "mb-4");
+  card.id = item.uuid;
   card.innerHTML = `
-  <div id="`+item.uuid+`" class="col-sm-6 col-lg-4 mb-4">
     <div class="card shadow">
         <h4 class="card-header">`+item.name+`
             <div class="mb-0" style="float: right;">
@@ -268,7 +240,6 @@ function newServerCard(item) {
             </p>
         </div>
     </div>
-  </div>
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {

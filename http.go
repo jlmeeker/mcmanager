@@ -302,6 +302,8 @@ func defaultHandler(c *gin.Context) {
 	if verifyToken(playerName, token) {
 		pd.Authenticated = true
 		pd.PlayerName = playerName
+	} else {
+		fmt.Printf("unauthenticated request: %s\n%s\n", playerName, token)
 	}
 
 	status := http.StatusOK
