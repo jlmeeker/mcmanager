@@ -1,9 +1,4 @@
-function servers() {
-   fetch('/v1/servers')
-  .then(response => response.json())
-  .then(data => console.log(data));
-}
-
+// Server Actions
 function startServer(id) {
   serverStartStop(id, "start");
 }
@@ -39,7 +34,9 @@ function deleteServer(name, id) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
-        location.reload();
+        document.getElementById('successToastBody').innerText = "Server successfully deleted";
+        toastList[0].show(); // successToast
+        fetchServers();
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
         toastList[1].show(); // dangerToast
@@ -50,64 +47,38 @@ function deleteServer(name, id) {
   xhttp.send();
 }
 
-function fetchServerStatuses() {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
-        refreshServerCards(JSON.parse(this.responseText));
-      } else if (this.status == 403) {
-          // just keep silent, user isn't logged in
-      } else {
-          document.getElementById('dangerToastBody').innerText = "Error refreshing server statuses";
-          toastList[1].show(); // dangerToast
-      }
-    }
-  };
-  xhttp.open("GET", "/v1/servers", true);
-  xhttp.send(); 
+// Modal Actions
+function closeModal(id) {
+  var myModalEl = document.getElementById(id);
+  var modal = bootstrap.Modal.getInstance(myModalEl)
+  modal.hide();
 }
 
-function refreshServerCards(data) {
-  for (const [name, status] of Object.entries(data)) {
-    refreshCard(status);
-  }
-}
-
-function refreshCard(status) {
-  try {
-    var card = document.getElementById("card_"+status.uuid);
-    var junk = card.innerText;
-  } 
-  catch(err) {
-    document.getElementById('dangerToastBody').innerText = "Could not refesh card for "+status.name;
-    toastList[1].show(); // dangerToast
-    return;
-  }
-
-  document.getElementById("port_"+status.uuid).innerText = status.port;
-  document.getElementById("autostart_"+status.uuid).innerText = status.autostart;
-  document.getElementById("players_"+status.uuid).innerText = status.players;
-  document.getElementById("flavor_"+status.uuid).innerText = status.flavor;
-  document.getElementById("ops_"+status.uuid).innerText = status.ops;
-  document.getElementById("release_"+status.uuid).innerText = status.release;
-
-  if (status.running) {
-    document.getElementById("startIndicator_"+status.uuid).classList.add("hidden");
-    document.getElementById("stopIndicator_"+status.uuid).classList.remove("hidden");
-  } else {
-    document.getElementById("startIndicator_"+status.uuid).classList.remove("hidden");
-    document.getElementById("stopIndicator_"+status.uuid).classList.add("hidden");
-  }
-}
-
+// All Forms (new server, login etc.)
 function submitForm(loc, form){
   var data = new FormData(form);
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
-        location.reload();
+        document.getElementById('successToastBody').innerText = "Success";
+        toastList[0].show(); // successToast
+        if (loc == "/v1/create") {
+          closeModal('newServerModal');
+          fetchServers();
+        } else if (loc == "/v1/login") {
+          document.getElementById('newServerIcon').classList.remove("hidden");
+          document.getElementById('logOutButton').classList.remove("hidden");
+          document.getElementById('logInButton').classList.add("hidden");
+          var replyObj = JSON.parse(this.responseText);
+          document.getElementById('playerName').innerText = replyObj.playername;
+          closeModal('logInModal');
+
+          if (replyObj.page == "servers") {
+            fetchServers();
+          }
+        }
+        form.reset();
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
         toastList[1].show(); // dangerToast
@@ -119,12 +90,19 @@ function submitForm(loc, form){
   return false;
 }
 
+// Logout
 function logout() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
-        location.reload();
+        document.getElementById('newServerIcon').classList.add("hidden");
+        document.getElementById('logOutButton').classList.add("hidden");
+        document.getElementById('logInButton').classList.remove("hidden");
+        document.getElementById('playerName').innerText = "";
+        document.getElementById('successToastBody').innerText = "Successfully logged out";
+        toastList[0].show(); // successToast
+        refreshServers({});
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
         toastList[1].show(); // dangerToast
@@ -136,6 +114,7 @@ function logout() {
   return false;
 }
 
+// News
 function fetchNews() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -157,12 +136,12 @@ function refreshNews(data) {
   if (entries.length > 0) {
     document.getElementById("news").innerHTML = "";
     for (const item of entries) {
-      newNewsItem(item[1]);
+      newNewsCard(item[1]);
     }
   }
 }
 
-function newNewsItem(item) {
+function newNewsCard(item) {
   var container = document.createElement("div");
   container.classList.add("col-sm-6", "col-lg-4", "mb-4", "newsitem");
 
@@ -215,11 +194,128 @@ function newNewsItem(item) {
   document.getElementById("news").appendChild(container);
 }
 
-
 function isToday(d) {
 	const today = new Date();
 	return d.getDate() == today.getDate() &&
 	  d.getMonth() == today.getMonth() &&
 	  d.getFullYear() == today.getFullYear()
 }
+
+// Servers
+function fetchServers() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        refreshServers(JSON.parse(this.responseText));
+      } else {
+          document.getElementById('dangerToastBody').innerText = "Error getting servers";
+          toastList[1].show(); // dangerToast
+      }
+    }
+  };
+  xhttp.open("GET", "/v1/servers", true);
+  xhttp.send(); 
+}
+
+function refreshServers(data) {
+  var entries = Object.entries(data);
+  if (entries.length > 0) {
+    document.getElementById("servers").innerHTML = "";
+    for (var i = 0; i < entries.length; i++) {
+      newServerCard(entries[i][1]);
+    }
+  } else {
+    document.getElementById("servers").innerHTML = `
+    <div class="text-center lead text-muted">
+        <p>Wow, looks pretty empty here...</p>
+        <br />
+        <p>Time to get your first server up and running.<br />
+            Click the <i class="bi bi-minecart-loaded text-success"></i> button at the top of the page.</p>
+    </div>
+    `;
+  }
+}
+
+function newServerCard(item) {
+  // Card Indicators
+    var cardindicators = document.createElement("div");
+    cardindicators.classList.add("mb-0");
+    cardindicators.style.float = "right";
+
+    var startindicator = document.createElement("a");
+    startindicator.id = "startIndicator_"+item.uuid;
+    startindicator.href = "#";
+    startindicator.onclick = "startServer('"+item.uuid+"')";
+    if (item.running === true) {
+      startindicator.classList.add("hidden");
+    }
+    startindicator.innerHTML = '<i class="bi-play-fill text-success"></i>';
+    cardindicators.appendChild(startindicator);
+
+    var stopindicator = document.createElement("a");
+    stopindicator.id = "stopIndicator_"+item.uuid;
+    stopindicator.href = "#";
+    stopindicator.onclick = "startServer('"+item.uuid+"')";
+    if (item.running === false) {
+      stopindicator.classList.add("hidden");
+    }
+    stopindicator.innerHTML = '<i class="bi-stop-fill text-warning"></i>';
+    cardindicators.appendChild(stopindicator);
+
+    if (item.amowner === true) {
+      var deleteindicator = document.createElement("a");
+      deleteindicator.id = "stopIndicator_"+item.uuid;
+      deleteindicator.href = "#";
+      deleteindicator.setAttribute("onclick", "deleteServer('"+item.name+"', '"+item.uuid+"')");
+      if (item.running === true) {
+        deleteindicator.classList.add("hidden");
+      }
+      deleteindicator.innerHTML = '<i class="bi-trash2 text-danger"></i>';
+      cardindicators.appendChild(deleteindicator);
+    }
+
+  // Card Header
+    var cardheader = document.createElement("h4");
+    cardheader.classList.add("card-header");
+    cardheader.appendChild(document.createTextNode(item.name));
+    cardheader.appendChild(cardindicators);
+
+  // Card Body
+    var cardbody = document.createElement("div");
+    cardbody.classList.add("card-body", "bg-light", "servercard");
+    cardbody.appendChild(cardheader);
+
+    var cardtitle = document.createElement("h5");
+    cardtitle.classList.add("card-title");
+    cardtitle.innerText = item.motd;
+    cardbody.appendChild(cardtitle);
+    cardbody.appendChild(document.createElement("br"));
+
+    var cardtext = document.createElement("p");
+    cardtext.classList.add("card-text");
+    cardtext.innerHTML = `
+    <strong>Flavor:</strong> `+item.flavor+`<br />
+    <strong>Release:</strong> `+item.release+`<br />
+    <strong>Port:</strong> `+item.port+`<br />
+    <strong>Autostart:</strong> `+item.autostart+`<br />
+    <strong>Ops:</strong> `+item.ops+`<br />
+    <strong>Players:</strong> `+item.players+`<br />
+    `;
+    cardbody.appendChild(cardtext);
+
+  // Card
+    var card = document.createElement("div");
+    card.classList.add("card", "shadow");
+    card.appendChild(cardheader);
+    card.appendChild(cardbody);
+
+  // Container
+    var container = document.createElement("div");
+    container.id = item.uuid;
+    container.classList.add("col-sm-6", "col-lg-4", "mb-4");
+    container.appendChild(card);
   
+  // Write container to page
+  document.getElementById("servers").appendChild(container);
+}

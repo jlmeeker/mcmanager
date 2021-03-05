@@ -255,6 +255,7 @@ type ServerWebView struct {
 	Ops       string `json:"ops"`
 	UUID      string `json:"uuid"`
 	Owner     string `json:"owner"`
+	AmOwner   bool   `json:"amowner"`
 }
 
 func opServersWebView(opName string) map[string]ServerWebView {
@@ -267,6 +268,12 @@ func opServersWebView(opName string) map[string]ServerWebView {
 		for _, op := range s.Ops() {
 			ops = append(ops, op.Name)
 		}
+
+		var amowner bool
+		if opName == s.Owner {
+			amowner = true
+		}
+
 		result[s.Name] = ServerWebView{
 			Name:      s.Name,
 			Release:   s.Release,
@@ -279,6 +286,7 @@ func opServersWebView(opName string) map[string]ServerWebView {
 			Ops:       strings.Join(ops, ", "),
 			UUID:      s.UUID,
 			Owner:     s.Owner,
+			AmOwner:   amowner,
 		}
 	}
 

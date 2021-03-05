@@ -75,10 +75,8 @@ type PageData struct {
 	Releases      struct {
 		Vanilla VersionFile
 	}
-	Servers struct {
-		List map[string]ServerWebView
-	}
-	Status struct {
+	Servers map[string]ServerWebView
+	Status  struct {
 		Uptime string
 	}
 }
@@ -150,6 +148,7 @@ func loginHandler(c *gin.Context) {
 	var formData struct {
 		Username string `form:"username"`
 		Password string `form:"password"`
+		Page     string `form:"page"`
 	}
 
 	var data = gin.H{
@@ -165,6 +164,7 @@ func loginHandler(c *gin.Context) {
 			data["success"] = http.StatusOK
 			data["playername"] = playerName
 			data["token"] = token
+			data["page"] = formData.Page
 			success = http.StatusOK
 		}
 	} else {
@@ -311,7 +311,7 @@ func defaultHandler(c *gin.Context) {
 		pd.Page = "home"
 	case "servers":
 		pd.Page = "servers"
-		pd.Servers.List = opServersWebView(playerName)
+		pd.Servers = opServersWebView(playerName)
 		pd.Releases.Vanilla = VanillaReleases
 	case "releases":
 		pd.Page = "releases"
@@ -343,15 +343,15 @@ func releasesHandler(c *gin.Context) {
 
 func serversHandler(c *gin.Context) {
 	var result = make(map[string]ServerWebView)
-
+	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
-	if playerName == "" {
-		c.JSON(http.StatusForbidden, result)
+	if !verifyToken(playerName, token) {
+		// silent fail with empty response
+		c.JSON(http.StatusOK, result)
 		return
 	}
 
 	result = opServersWebView(playerName)
-
 	c.JSON(200, result)
 }
 

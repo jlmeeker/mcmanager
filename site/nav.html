@@ -12,36 +12,14 @@
                     <a class="nav-link {{if eq .Page "servers" }}active{{end}}" href="/view/servers">Servers</a>
                     <a class="nav-link {{if eq .Page "releases" }}active{{end}}" href="/view/releases">Releases</a>
                     <a class="nav-link {{if eq .Page "status" }}active{{end}}" href="/view/status">Status</a>
-                    {{if .Authenticated}}
-                    <a class="nav-link text-success" href="#" data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i> New</a>
-                    {{end -}}
+                    <a id="newServerIcon" class="nav-link text-success hidden" href="#" data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i> New</a>
                 </div>
             </div>
-            {{if .Authenticated}}
-                {{template "logoutbutton" .PlayerName}}
-            {{else}}
-                {{template "loginbutton"}}
-            {{end}}
+            <button id="logInButton" type="button" class="btn btn-primary btn-sm {{if .Authenticated}}hidden{{end}}" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
+            <span id="playerName">{{if .Authenticated}}{{.PlayerName}}{{end}}</span>&nbsp; &nbsp;<a id="logOutButton" href="#" onclick="logout()" alt="log out" class="{{if not .Authenticated}}hidden{{end}}"><i class="bi-lock-fill text-danger"></i></a>
         </div>
     </nav>
 </div>
 {{- template "newserverform" .Releases}}
-{{- template "loginform" .Releases}}
-{{- end}}
-
-{{define "newserverbutton" -}}
-<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newServerModal">
-    New Server
-</button>
-{{- end}}
-
-{{define "loginbutton" -}}
-<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#logInModal">
-    Log in
-</button>
-{{- end}}
-
-{{define "logoutbutton" -}}
-{{.}} 
-<a href="#" onclick="logout()" alt="log out"><i class="bi-lock-fill text-danger"></i></a>
+{{- template "loginform" .}}
 {{- end}}
