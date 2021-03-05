@@ -18,6 +18,7 @@ function serverStartStop(id, action) {
         document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
         toastList[1].show(); // dangerToast
       }
+      fetchServers();
     }
   };
   xhttp.open("POST", "/v1/"+action+"/"+id, true);
@@ -238,84 +239,44 @@ function refreshServers(data) {
 }
 
 function newServerCard(item) {
-  // Card Indicators
-    var cardindicators = document.createElement("div");
-    cardindicators.classList.add("mb-0");
-    cardindicators.style.float = "right";
-
-    var startindicator = document.createElement("a");
-    startindicator.id = "startIndicator_"+item.uuid;
-    startindicator.href = "#";
-    startindicator.onclick = "startServer('"+item.uuid+"')";
-    if (item.running === true) {
-      startindicator.classList.add("hidden");
-    }
-    startindicator.innerHTML = '<i class="bi-play-fill text-success"></i>';
-    cardindicators.appendChild(startindicator);
-
-    var stopindicator = document.createElement("a");
-    stopindicator.id = "stopIndicator_"+item.uuid;
-    stopindicator.href = "#";
-    stopindicator.onclick = "startServer('"+item.uuid+"')";
-    if (item.running === false) {
-      stopindicator.classList.add("hidden");
-    }
-    stopindicator.innerHTML = '<i class="bi-stop-fill text-warning"></i>';
-    cardindicators.appendChild(stopindicator);
-
-    if (item.amowner === true) {
-      var deleteindicator = document.createElement("a");
-      deleteindicator.id = "stopIndicator_"+item.uuid;
-      deleteindicator.href = "#";
-      deleteindicator.setAttribute("onclick", "deleteServer('"+item.name+"', '"+item.uuid+"')");
-      if (item.running === true) {
-        deleteindicator.classList.add("hidden");
-      }
-      deleteindicator.innerHTML = '<i class="bi-trash2 text-danger"></i>';
-      cardindicators.appendChild(deleteindicator);
-    }
-
-  // Card Header
-    var cardheader = document.createElement("h4");
-    cardheader.classList.add("card-header");
-    cardheader.appendChild(document.createTextNode(item.name));
-    cardheader.appendChild(cardindicators);
-
-  // Card Body
-    var cardbody = document.createElement("div");
-    cardbody.classList.add("card-body", "bg-light", "servercard");
-    cardbody.appendChild(cardheader);
-
-    var cardtitle = document.createElement("h5");
-    cardtitle.classList.add("card-title");
-    cardtitle.innerText = item.motd;
-    cardbody.appendChild(cardtitle);
-    cardbody.appendChild(document.createElement("br"));
-
-    var cardtext = document.createElement("p");
-    cardtext.classList.add("card-text");
-    cardtext.innerHTML = `
-    <strong>Flavor:</strong> `+item.flavor+`<br />
-    <strong>Release:</strong> `+item.release+`<br />
-    <strong>Port:</strong> `+item.port+`<br />
-    <strong>Autostart:</strong> `+item.autostart+`<br />
-    <strong>Ops:</strong> `+item.ops+`<br />
-    <strong>Players:</strong> `+item.players+`<br />
-    `;
-    cardbody.appendChild(cardtext);
-
-  // Card
-    var card = document.createElement("div");
-    card.classList.add("card", "shadow");
-    card.appendChild(cardheader);
-    card.appendChild(cardbody);
-
-  // Container
-    var container = document.createElement("div");
-    container.id = item.uuid;
-    container.classList.add("col-sm-6", "col-lg-4", "mb-4");
-    container.appendChild(card);
-  
-  // Write container to page
-  document.getElementById("servers").appendChild(container);
+  var card = document.createElement("div");
+  card.innerHTML = `
+  <div id="`+item.uuid+`" class="col-sm-6 col-lg-4 mb-4">
+    <div class="card shadow">
+        <h4 class="card-header">`+item.name+`
+            <div class="mb-0" style="float: right;">
+              <a id="startIndicator_`+item.uuid+`" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
+                <i class="bi-play-fill text-success"></i>
+              </a>
+              <a id="stopIndicator_`+item.uuid+`" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
+                <i class="bi-stop-fill text-warning"></i>
+              </a>
+              <a id="deleteIndicator_`+item.uuid+`" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
+                <i class="bi-trash2 text-danger"></i>
+              </a>
+            </div>
+        </h4>
+        <div class="card-body bg-light servercard">
+            <h5 class="card-title">`+item.motd+`</h5><br>
+            <p class="card-text">
+              <strong>Flavor:</strong> `+item.flavor+`<br>
+              <strong>Release:</strong> `+item.release+`<br>
+              <strong>Port:</strong> `+item.port+`<br>
+              <strong>Autostart:</strong> `+item.autostart+`<br>
+              <strong>Ops:</strong> `+item.ops+`<br>
+              <strong>Players:</strong> `+item.players+`<br>
+            </p>
+        </div>
+    </div>
+  </div>
+  `;
+  document.getElementById("servers").appendChild(card);
+  if (item.running === true) {
+    document.getElementById("stopIndicator_"+item.uuid).classList.remove("hidden");
+  } else {
+    document.getElementById("startIndicator_"+item.uuid).classList.remove("hidden");
+  }
+  if (item.amowner === true) {
+    document.getElementById("deleteIndicator_"+item.uuid).classList.remove("hidden");
+  }
 }
