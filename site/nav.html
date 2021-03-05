@@ -11,10 +11,8 @@
                     <a class="nav-link {{if eq .Page "home" }}active{{end}}" aria-current="page" href="/">Home</a>
                     <a class="nav-link {{if eq .Page "servers" }}active{{end}}" href="/view/servers">Servers</a>
                     <a class="nav-link {{if eq .Page "releases" }}active{{end}}" href="/view/releases">Releases</a>
-                    <a class="nav-link {{if eq .Page "status" }}active{{end}}" href="/view/status">Status</a>
-                    {{- if .Authenticated}}
-                    <a id="newServerIcon" class="nav-link text-success" href="#" data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i> New</a>
-                    {{- end}}
+                    <a class="nav-link {{if eq .Page "status" }}active{{end}}" href="/view/status">Status</a>                    
+                    <a id="newServerIcon" class="nav-link text-success {{if not .Authenticated}}hidden{{end}}" href="#" data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i> New</a>
                 </div>
             </div>
             <button id="logInButton" type="button" class="btn btn-primary btn-sm {{if .Authenticated}}hidden{{end}}" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
