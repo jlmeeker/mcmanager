@@ -62,24 +62,24 @@ function submitForm(loc, form){
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
+        var replyObj = JSON.parse(this.responseText);
+        form.reset();
         document.getElementById('successToastBody').innerText = "Success";
         toastList[0].show(); // successToast
         if (loc == "/v1/create") {
           closeModal('newServerModal');
-          fetchServers();
+          if (replyObj.page == "servers") {
+            fetchServers();
+          } else {
+            document.location.href = "/view/servers";
+          }
         } else if (loc == "/v1/login") {
           document.getElementById('newServerIcon').classList.remove("hidden");
           document.getElementById('logOutButton').classList.remove("hidden");
           document.getElementById('logInButton').classList.add("hidden");
-          var replyObj = JSON.parse(this.responseText);
           document.getElementById('playerName').innerText = replyObj.playername;
           closeModal('logInModal');
-
-          if (replyObj.page == "servers") {
-            fetchServers();
-          }
         }
-        form.reset();
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
         toastList[1].show(); // dangerToast

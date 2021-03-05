@@ -25,9 +25,9 @@
                 <div class="mb-3">
                     <label for="release" class="form-label">Release</label>
                     <select class="form-select" aria-label="release" name="release" id="release">
-                        <option selected value="{{.Vanilla.Latest.Release}}">{{.Vanilla.Latest.Release}}</option>
-                        <option value="{{.Vanilla.Latest.Snapshot}}">{{.Vanilla.Latest.Snapshot}}</option>
-                        {{- range .Vanilla.Versions}}
+                        <option selected value="{{.Releases.Vanilla.Latest.Release}}">{{.Releases.Vanilla.Latest.Release}}</option>
+                        <option value="{{.Releases.Vanilla.Latest.Snapshot}}">{{.Releases.Vanilla.Latest.Snapshot}}</option>
+                        {{- range .Releases.Vanilla.Versions}}
                         {{- if eq .Type "release"}}
                         <option value="{{.ID}}">{{.ID}}</option>
                         {{- end}}
@@ -44,6 +44,7 @@
                         <label class="form-check-label" for="autostart">Enable auto start</label>
                     </div>
                 </div>
+                <input type="hidden" name="page" value="{{.Page}}">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>

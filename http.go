@@ -97,6 +97,7 @@ type CreateForm struct {
 	Release   string `form:"release"`
 	AutoStart bool   `form:"autostart"`
 	StartNow  bool   `form:"startnow"`
+	Page      string `form:"page"`
 }
 
 // TODO: sanity-check input
@@ -136,6 +137,7 @@ func createHandler(c *gin.Context) {
 
 	var data = gin.H{
 		"result": success,
+		"page":   formData.Page,
 	}
 	if err != nil {
 		data["error"] = err.Error()
@@ -296,6 +298,7 @@ func defaultHandler(c *gin.Context) {
 	pd := PageData{
 		AppTitle: APPTITLE,
 	}
+	pd.Releases.Vanilla = VanillaReleases
 
 	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
@@ -314,10 +317,8 @@ func defaultHandler(c *gin.Context) {
 	case "servers":
 		pd.Page = "servers"
 		pd.Servers = opServersWebView(playerName)
-		pd.Releases.Vanilla = VanillaReleases
 	case "releases":
 		pd.Page = "releases"
-		pd.Releases.Vanilla = VanillaReleases
 	case "status":
 		pd.Page = "status"
 	default:
