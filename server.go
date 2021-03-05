@@ -254,6 +254,7 @@ type ServerWebView struct {
 	Flavor    string `json:"flavor"`
 	Ops       string `json:"ops"`
 	UUID      string `json:"uuid"`
+	Owner     string `json:"owner"`
 }
 
 func opServersWebView(opName string) map[string]ServerWebView {
@@ -277,6 +278,7 @@ func opServersWebView(opName string) map[string]ServerWebView {
 			Flavor:    s.Flavor,
 			Ops:       strings.Join(ops, ", "),
 			UUID:      s.UUID,
+			Owner:     s.Owner,
 		}
 	}
 

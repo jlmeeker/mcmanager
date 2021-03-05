@@ -29,7 +29,12 @@ function serverStartStop(id, action) {
   xhttp.send();
 }
 
-function deleteServer(id) {
+function deleteServer(name, id) {
+  var r = confirm("Delete "+name+"?");
+  if ( r === false) {
+    return false;
+  }
+
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {

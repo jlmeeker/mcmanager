@@ -210,12 +210,14 @@ func deleteHandler(c *gin.Context) {
 	playerName, _ := c.Cookie("player")
 	if verifyToken(playerName, token) {
 		if s, ok := Servers[serverID]; ok {
-			err = s.Delete()
-			if err == nil {
-				success = http.StatusOK
-				loadServers()
-			} else {
-				success = http.StatusInternalServerError
+			if s.Owner == playerName { // only the owner can delete a server
+				err = s.Delete()
+				if err == nil {
+					success = http.StatusOK
+					loadServers()
+				} else {
+					success = http.StatusInternalServerError
+				}
 			}
 		}
 	} else {
