@@ -25,8 +25,15 @@ func auth(username, password string) (string, string, error) {
 		return "", "", errors.New(err.ErrorMessage)
 	}
 
-	TokenCache[authResponse.SelectedProfile.Name] = authResponse.AccessToken
-	return authResponse.AccessToken, authResponse.SelectedProfile.Name, saveTokenCache()
+	// if we have a cached token, return it.... otherwise save the received one
+	pt, err2 := lookupToken(authResponse.SelectedProfile.Name)
+	if err2 != nil {
+		fmt.Printf("lookuptoken error: %s\n", err2.Error())
+		pt = authResponse.AccessToken
+		TokenCache[authResponse.SelectedProfile.Name] = pt
+	}
+
+	return pt, authResponse.SelectedProfile.Name, saveTokenCache()
 }
 
 func verifyToken(name, token string) bool {
@@ -57,6 +64,21 @@ func loadTokenCache() error {
 func removeToken(player string) {
 	delete(TokenCache, player)
 	saveTokenCache()
+}
+
+func lookupToken(player string) (string, error) {
+	err := loadTokenCache()
+	if err != nil {
+		return "", err
+	}
+
+	for cachedPlayer, cachedToken := range TokenCache {
+		if cachedPlayer == player {
+			return cachedToken, nil
+		}
+	}
+
+	return "", errors.New("player not in cache")
 }
 
 // UUIDplayer is the structure of data expected as a result of a mojang profile request
