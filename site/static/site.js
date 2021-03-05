@@ -145,11 +145,10 @@ function refreshNews(data) {
 function newNewsCard(item) {
   var card = document.createElement("div");
   card.classList.add("col-sm-6", "col-lg-4", "mb-4", "newsitem");
-  card.id = item.uuid;
-  card.innerHTML =  `
-  <div class="card shadow">
-    <a href="`+item.preview.Link+`" target="_blank">
-      <img class="card-img-top" src="`+item.preview.Images[0]+`"></a>
+  card.innerHTML = `
+  <a href="`+item.preview.Link+`" target="_blank">
+    <div class="card shadow newsitem">
+      <img class="card-img-top" src="`+item.preview.Images[0]+`">
       <div class="card-body bg-light">
         <h5 class="card-title">`+item.preview.Title+`</h5>
         <p class="card-text">`+item.preview.Description+`</p>
@@ -158,6 +157,7 @@ function newNewsCard(item) {
         </p>
       </div>
     </div>
+  </a>
   `;
   itemDate = new Date(item.posted);
   if (isToday(itemDate)) {
