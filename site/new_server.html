@@ -1,4 +1,6 @@
 {{define "newserverform"}}
+{{- $latest := .Releases.Vanilla.Latest.Release}}
+{{- $latestSnapshot := .Releases.Vanilla.Latest.Snapshot}}
 <div class="modal fade" id="newServerModal" tabindex="-1" aria-labelledby="newServerLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -30,11 +32,10 @@
                 <div class="mb-3">
                     <label for="release" class="form-label">Release</label>
                     <select class="form-select" aria-label="release" name="release" id="release">
-                        <option selected value="{{.Releases.Vanilla.Latest.Release}}">{{.Releases.Vanilla.Latest.Release}}</option>
-                        <option value="{{.Releases.Vanilla.Latest.Snapshot}}">{{.Releases.Vanilla.Latest.Snapshot}}</option>
+                        <option value="{{$latestSnapshot}}">{{$latestSnapshot}}</option>
                         {{- range .Releases.Vanilla.Versions}}
                         {{- if eq .Type "release"}}
-                        <option value="{{.ID}}">{{.ID}}</option>
+                        <option value="{{.ID}}" {{if eq .ID $latest}}selected{{end}}>{{.ID}}</option>
                         {{- end}}
                         {{- end}}
                     </select>

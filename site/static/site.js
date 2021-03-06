@@ -1,21 +1,42 @@
 // Server Actions
+function backupServer(id) {
+  serverAction(id, "backup");
+}
+
+function deleteServer(name, id) {
+  var r = confirm("Delete "+name+"?");
+  if ( r === false) {
+    return false;
+  }
+  serverAction(id, "delete");
+}
+
+function setDaytime(id) {
+  serverAction(id, "day");
+}
+
 function startServer(id) {
-  serverStartStop(id, "start");
+  serverAction(id, "start");
 }
 
 function stopServer(id) {
-  serverStartStop(id, "stop");
+  serverAction(id, "stop");
 }
 
-function serverStartStop(id, action) {
+function weatherClear(id) {
+  serverAction(id, "clear");
+}
+
+function serverAction(id, action) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
+      var replyObj = JSON.parse(this.responseText);
       if (this.status == 200) {
-        document.getElementById('successToastBody').innerText = "Successfully "+action+"ed the server";
+        document.getElementById('successToastBody').innerText = "Action successful";
         toastList[0].show(); // successToast
       } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
         toastList[1].show(); // dangerToast
       }
       fetchServers();
@@ -25,28 +46,6 @@ function serverStartStop(id, action) {
   xhttp.send();
 }
 
-function deleteServer(name, id) {
-  var r = confirm("Delete "+name+"?");
-  if ( r === false) {
-    return false;
-  }
-
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
-        document.getElementById('successToastBody').innerText = "Server successfully deleted";
-        toastList[0].show(); // successToast
-        fetchServers();
-      } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
-        toastList[1].show(); // dangerToast
-      }
-    }
-  };
-  xhttp.open("POST", "/v1/delete/"+id, true);
-  xhttp.send();
-}
 
 // Modal Actions
 function closeModal(id) {
@@ -226,14 +225,23 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header">`+item.name+`
             <div class="mb-0" style="float: right;">
-              <a id="startIndicator_`+item.uuid+`" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
-                <i class="bi-play-fill text-success"></i>
+              <a id="weatherIndicator_`+item.uuid+`" title="clear weather" href="#" class="hidden" onClick="weatherClear('`+item.uuid+`')">
+                <i class="bi-cloud-sun text-primary"></i>
               </a>
-              <a id="stopIndicator_`+item.uuid+`" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
-                <i class="bi-stop-fill text-warning"></i>
+              <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
+                <i class="bi-sunrise text-warning"></i>
               </a>
-              <a id="deleteIndicator_`+item.uuid+`" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
-                <i class="bi-trash2 text-danger"></i>
+              <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+                <i class="bi-filter-square text-success"></i>
+              </a>
+              <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
+                <i class="bi-caret-right-square text-success"></i>
+              </a>
+              <a id="stopIndicator_`+item.uuid+`" title="stop" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
+                <i class="bi-exclamation-square text-warning"></i>
+              </a>
+              <a id="deleteIndicator_`+item.uuid+`" title="delete" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
+                <i class="bi-x-square text-danger"></i>
               </a>
             </div>
         </h4>
@@ -252,6 +260,9 @@ function newServerCard(item) {
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {
+    document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("backupIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("stopIndicator_"+item.uuid).classList.remove("hidden");
   } else {
     document.getElementById("startIndicator_"+item.uuid).classList.remove("hidden");

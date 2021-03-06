@@ -177,7 +177,15 @@ func (s *Server) Backup() error {
 	if err != nil {
 		return err
 	}
-	time.Sleep(2 * time.Second)
+	return nil
+}
+
+// Day will instruct the server to set the time to day
+func (s *Server) Day() error {
+	_, err := s.Rcon("time set day")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -368,6 +376,15 @@ func (s *Server) AddOp(name string, force bool) error {
 
 	ops = append(ops, o)
 	return s.SaveOps(ops)
+}
+
+// WeatherClear will instruct the server to perform a save-all operation
+func (s *Server) WeatherClear() error {
+	_, err := s.Rcon("weather clear")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //ServersWithOp returns a list of servers the Op owns or is an op on
