@@ -40,8 +40,8 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 	router.StaticFS("/img", http.FS(staticfiles))
 	router.StaticFS("/js", http.FS(staticfiles))
 	router.NoRoute(notFoundHandler)
-	router.GET("/", defaultHandler)
-	router.GET("/view/:page", defaultHandler)
+	router.GET("/", viewHandler)
+	router.GET("/view/:page", viewHandler)
 
 	v1 := router.Group("/v1")
 	{
@@ -274,7 +274,7 @@ func stopHandler(c *gin.Context) {
 	c.JSON(success, data)
 }
 
-func defaultHandler(c *gin.Context) {
+func viewHandler(c *gin.Context) {
 	pd := PageData{
 		AppTitle: APPTITLE,
 	}
