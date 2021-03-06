@@ -2,13 +2,14 @@ package forms
 
 // NewServer is the expected of the data expected from the new server web form
 type NewServer struct {
-	Name      string `form:"name"`
-	MOTD      string `form:"motd"`
-	Flavor    string `form:"flavor"`
 	Release   string `form:"release"`
 	AutoStart bool   `form:"autostart"`
-	StartNow  bool   `form:"startnow"`
+	Flavor    string `form:"flavor"`
+	MOTD      string `form:"motd"`
+	Name      string `form:"name"`
 	Page      string `form:"page"`
+	StartNow  bool   `form:"startnow"`
+	Whitelist bool   `form:"whitelist"`
 }
 
 // Login is the structure of the data expected from the login web form

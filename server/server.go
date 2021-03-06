@@ -40,7 +40,7 @@ type Server struct {
 }
 
 // NewServer creates a new instance of Server, and sets up the serverdir
-func NewServer(owner string, formData forms.NewServer, port int) (Server, error) {
+func NewServer(owner string, formData forms.NewServer, port int, whitelist bool) (Server, error) {
 	var s = Server{
 		Name:      formData.Name,
 		Owner:     owner,
@@ -90,6 +90,7 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 		props.set("rcon.password", "admin")
 		props.set("motd", formData.MOTD)
 		props.setPort(port)
+		props.enableWhiteList()
 
 		err = props.writeToFile(s.ServerDir())
 		s.Props = props
@@ -100,7 +101,6 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 	}
 
 	err = s.Save()
-
 	if err == nil && formData.StartNow {
 		err = s.Start()
 	}
@@ -160,7 +160,9 @@ func LoadServers() error {
 	return nil
 }
 
-// AddOp will add a user as an op (loading the ops.json file contents first, unless forced)
+// AddOp will add a user as an op
+// the force option is to ignore errors from loading the ops.json file
+// like happens when one doesn't exist.
 func (s *Server) AddOp(name string, force bool) error {
 	ops, err := s.LoadOps()
 	if err != nil && force == false {
@@ -367,6 +369,7 @@ type WebView struct {
 	UUID      string `json:"uuid"`
 	Owner     string `json:"owner"`
 	AmOwner   bool   `json:"amowner"`
+	WhiteList string `json:"whitelist"`
 }
 
 // OpServersWebView is a web view of a list of servers
@@ -399,6 +402,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			UUID:      s.UUID,
 			Owner:     s.Owner,
 			AmOwner:   amowner,
+			WhiteList: s.Props["enforce-whitelist"],
 		}
 	}
 

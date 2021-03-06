@@ -83,6 +83,12 @@ func (sp Properties) get(key string) string {
 	return ""
 }
 
+// EnableWhiteList enables minecraf's built-in whitelist
+func (sp *Properties) enableWhiteList() {
+	sp.set("enforce-whitelist", "true")
+	sp.set("white-list", "true")
+}
+
 func acceptEULA(serverdir string) error {
 	dh, err := os.OpenFile(filepath.Join(serverdir, "eula.txt"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0640)
 	if err != nil {

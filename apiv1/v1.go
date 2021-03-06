@@ -124,7 +124,7 @@ func Create(c *gin.Context) {
 		err = c.Bind(&formData)
 		if err == nil {
 			port := server.NextAvailablePort()
-			s, err = server.NewServer(playerName, formData, port)
+			s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
 			if err == nil {
 				err = s.AddOp(playerName, true)
 				if err != nil {
