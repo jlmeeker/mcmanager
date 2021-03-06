@@ -2,10 +2,11 @@
 function addOp(serverID) {
   var opname = prompt("Player name of the new Op:");
   if (opname != "") {
-    serverOpAdd(serverID, opname, "addop");
+    var data = new FormData();
+    data.append("opname", opname);
+    serverAction(serverID, "addop", data);
   }
 }
-
 
 function backupServer(id) {
   serverAction(id, "backup");
@@ -35,7 +36,7 @@ function weatherClear(id) {
   serverAction(id, "clear");
 }
 
-function serverAction(id, action) {
+function serverAction(id, action, formdata) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
@@ -51,32 +52,13 @@ function serverAction(id, action) {
     }
   };
   xhttp.open("POST", "/v1/"+action+"/"+id, true);
-  xhttp.send();
+
+  if (formdata instanceof Object) {
+    xhttp.send(formdata);
+  } else {
+    xhttp.send();
+  }
 }
-
-function serverOpAdd(id, opname) {
-  var data = new FormData();
-  data.append("opname", opname);
-
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4) {
-      var replyObj = JSON.parse(this.responseText);
-      if (this.status == 200) {
-        document.getElementById('successToastBody').innerText = "Action successful";
-        toastList[0].show(); // successToast
-      } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
-        toastList[1].show(); // dangerToast
-      }
-      fetchServers();
-    }
-  };
-  xhttp.open("POST", "/v1/addop/"+id, true);
-  //xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  xhttp.send(data);
-}
-
 
 // Modal Actions
 function closeModal(id) {
