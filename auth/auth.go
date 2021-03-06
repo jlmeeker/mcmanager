@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"bytes"
@@ -11,12 +11,14 @@ import (
 	"path/filepath"
 
 	yggdrasil "github.com/jlmeeker/go-yggdrasil"
+	"github.com/jlmeeker/mcmanager/storage"
 )
 
 // TokenCache is an in-memory cache of user tokens
 var TokenCache = make(map[string]string)
 
-func auth(username, password string) (string, string, error) {
+// Auth will authenticate a login request
+func Auth(username, password string) (string, string, error) {
 	//Auth with Minecraft version 1
 	yggdrasilClient := &yggdrasil.Client{}
 	authResponse, err := yggdrasilClient.Authenticate(username, password, "Minecraft", 1)
@@ -26,7 +28,7 @@ func auth(username, password string) (string, string, error) {
 	}
 
 	// if we have a cached token, return it.... otherwise save the received one
-	pt, err2 := lookupToken(authResponse.SelectedProfile.Name)
+	pt, err2 := LookupToken(authResponse.SelectedProfile.Name)
 	if err2 != nil {
 		fmt.Printf("lookuptoken error: %s\n", err2.Error())
 		pt = authResponse.AccessToken
@@ -36,7 +38,8 @@ func auth(username, password string) (string, string, error) {
 	return pt, authResponse.SelectedProfile.Name, saveTokenCache()
 }
 
-func verifyToken(name, token string) bool {
+// VerifyToken checks the playerName and token against the token cache
+func VerifyToken(name, token string) bool {
 	for playerName, playerToken := range TokenCache {
 		if token == playerToken && name == playerName {
 			return true
@@ -50,24 +53,27 @@ func saveTokenCache() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(STORAGEDIR, "token_cache.json"), jb, 0600)
+	return os.WriteFile(filepath.Join(storage.STORAGEDIR, "token_cache.json"), jb, 0600)
 }
 
-func loadTokenCache() error {
-	fb, err := os.ReadFile(filepath.Join(STORAGEDIR, "token_cache.json"))
+// LoadTokenCache reads the file contents into memory (why?)
+func LoadTokenCache() error {
+	fb, err := os.ReadFile(filepath.Join(storage.STORAGEDIR, "token_cache.json"))
 	if err != nil {
 		return err
 	}
 	return json.Unmarshal(fb, &TokenCache)
 }
 
-func removeToken(player string) {
+// RemoveToken will erase a name/token pair from the in-memory copy of the token cache
+func RemoveToken(player string) {
 	delete(TokenCache, player)
 	saveTokenCache()
 }
 
-func lookupToken(player string) (string, error) {
-	err := loadTokenCache()
+// LookupToken looks up a token from in-memory token cache
+func LookupToken(player string) (string, error) {
+	err := LoadTokenCache()
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +95,8 @@ type UUIDplayer struct {
 	Demo   bool   `json:"demo"`
 }
 
-func playerUUIDLookup(player string) (string, error) {
+// PlayerUUIDLookup looks up a UUID for a playerName
+func PlayerUUIDLookup(player string) (string, error) {
 	var reply []UUIDplayer
 
 	data, err := json.Marshal([]string{
@@ -105,7 +112,7 @@ func playerUUIDLookup(player string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	if !contentTypeIsCorrect("application/json", resp.Header.Get("Content-Type")) {
+	if resp.Header.Get("Content-Type") != "application/json" {
 		return "", fmt.Errorf("Wrong content type: %v", resp.Header.Get("Content-Type"))
 	}
 

@@ -1,9 +1,9 @@
-package main
+package rcon
 
 import mcrcon "github.com/jlmeeker/mc-rcon"
 
-// RconSend sends a message to the server's rcon
-func rconSend(msg, port, pass string) (string, error) {
+// Send sends a message to the server's rcon
+func Send(msg, port, pass string) (string, error) {
 	conn := new(mcrcon.MCConn)
 	err := conn.Open("localhost:"+port, pass)
 	if err != nil {

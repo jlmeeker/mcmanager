@@ -1,20 +1,15 @@
-package main
+package vanilla
 
 import (
 	"fmt"
 
 	"github.com/badoux/goscraper"
+	"github.com/jlmeeker/mcmanager/newsitem"
 	"github.com/mmcdole/gofeed"
 )
 
-// NewsItem is the simplest form of data for a card on the "home" view
-type NewsItem struct {
-	Posted  string                     `json:"posted"`
-	Preview *goscraper.DocumentPreview `json:"preview"`
-}
-
-// VanillaNews cached copy of the latest pulled vanilla news
-var VanillaNews = []NewsItem{}
+// News cached copy of the latest pulled vanilla news
+var News = []newsitem.NewsItem{}
 
 func sitePreview(site string) *goscraper.Document {
 	p, e := goscraper.Scrape(site, 5)
@@ -24,18 +19,19 @@ func sitePreview(site string) *goscraper.Document {
 	return p
 }
 
-func vanillaNews(max int) ([]NewsItem, error) {
-	var items []NewsItem
+// RefreshNews pulls and caches the latest news
+func RefreshNews(max int) error {
+	var items []newsitem.NewsItem
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL("https://minecraft.net/en-us/feeds/community-content/rss")
 	if err != nil {
-		return items, err
+		return err
 	}
 
 	var count = 0
 	for _, item := range feed.Items {
 		//Mon Jan 2 15:04:05 -0700 MST 2006
-		ni := NewsItem{
+		ni := newsitem.NewsItem{
 			Posted:  item.PublishedParsed.Local().Format("Jan 2, 2006"),
 			Preview: &sitePreview(item.Link).Preview,
 		}
@@ -46,5 +42,7 @@ func vanillaNews(max int) ([]NewsItem, error) {
 			break
 		}
 	}
-	return items, nil
+
+	News = items
+	return nil
 }

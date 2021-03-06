@@ -1,22 +1,26 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"time"
+
+	"github.com/jlmeeker/mcmanager/auth"
+	"github.com/jlmeeker/mcmanager/mcmhttp"
+	"github.com/jlmeeker/mcmanager/server"
+	"github.com/jlmeeker/mcmanager/storage"
+	"github.com/jlmeeker/mcmanager/vanilla"
 )
+
+//go:embed site
+var embededFiles embed.FS
 
 // APPTITLE is the name of the application as shows in WebUI
 const APPTITLE = "MC Manager"
-
-// STORAGEDIR is where all server instances are stored
-var STORAGEDIR string
-
-// Servers is the global list of managed servers
-var Servers = make(map[string]Server)
 
 // Flags
 var (
@@ -32,20 +36,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	STORAGEDIR = *flagStorageDir
-	err := makeStorageDir()
+	webfiles, err := fs.Sub(embededFiles, "site")
 	if err != nil {
-		fmt.Printf("ERROR making storage dir: %s", err.Error())
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	err = makeJarDir()
+	err = storage.Prepare(*flagStorageDir)
 	if err != nil {
-		fmt.Printf("ERROR making jar dir: %s", err.Error())
+		fmt.Printf("ERROR making storage dirs: %s", err.Error())
 		os.Exit(1)
 	}
 
-	err = loadTokenCache()
+	err = auth.LoadTokenCache()
 	if err != nil {
 		fmt.Printf("ERROR loading token cache: %s\n", err.Error())
 	}
@@ -53,9 +56,12 @@ func main() {
 	go func() {
 		var err error
 		for {
-			downloadLatestVanilla()
-			VanillaNews, _ = vanillaNews(10)
-			VanillaReleases, _ = getVanillaManifest()
+			err = vanilla.RefreshReleases()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+			err = vanilla.RefreshNews(10)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -64,7 +70,7 @@ func main() {
 		}
 	}()
 
-	err = loadServers()
+	err = server.LoadServers()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -75,7 +81,7 @@ func main() {
 	go func() {
 		for sig := range c {
 			fmt.Printf("Received %s... backing up all running servers\n", sig.String())
-			for _, s := range Servers {
+			for _, s := range server.Servers {
 				if s.IsRunning() {
 					err := s.Backup()
 					if err != nil {
@@ -87,49 +93,11 @@ func main() {
 		}
 	}()
 
-	for _, instance := range Servers {
+	for _, instance := range server.Servers {
 		if instance.AutoStart {
 			instance.Start()
 		}
 	}
 
-	listen(*flagListenAddr)
-}
-
-func inList(needle string, haystack []string) bool {
-	for _, item := range haystack {
-		if item == needle {
-			return true
-		}
-	}
-	return false
-}
-
-func loadServers() error {
-	var servers = make(map[string]Server)
-	var basedir = filepath.Join(STORAGEDIR, "servers")
-	entries, err := os.ReadDir(basedir)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			var name = entry.Name()
-			var entrydir = filepath.Join(basedir, name)
-			s, err := LoadServer(entrydir)
-			if err != nil {
-				fmt.Printf("error loading %s: %s\n", entrydir, err.Error())
-			} else {
-				servers[s.UUID] = s
-			}
-		}
-	}
-
-	Servers = servers
-	return nil
-}
-
-func makeStorageDir() error {
-	return os.MkdirAll(filepath.Join(STORAGEDIR, "servers"), 0750)
+	mcmhttp.Listen(APPTITLE, *flagListenAddr, &webfiles)
 }

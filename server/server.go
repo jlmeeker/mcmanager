@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -14,26 +14,34 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jlmeeker/mcmanager/auth"
+	"github.com/jlmeeker/mcmanager/forms"
+	"github.com/jlmeeker/mcmanager/rcon"
+	"github.com/jlmeeker/mcmanager/storage"
+	"github.com/jlmeeker/mcmanager/vanilla"
 )
 
+// Servers is the global list of managed servers
+var Servers = make(map[string]Server)
+
 // FLAVORS is a list of supported minecraft flavors
-var FLAVORS = []string{"vanilla", "spigot"}
+var FLAVORS = []string{"vanilla"}
 
 // Server is an instance of a server, tracked during runtime
 type Server struct {
-	Name      string           `json:"name"`
-	Owner     string           `json:"owner"`
-	Props     ServerProperties `json:"properties"`
-	Release   string           `json:"release"`
-	MaxMem    string           `json:"maxmem"`
-	MinMem    string           `json:"minmem"`
-	AutoStart bool             `json:"autostart"`
-	Flavor    string           `json:"flavor"`
-	UUID      string           `json:"uuid"`
+	Name      string     `json:"name"`
+	Owner     string     `json:"owner"`
+	Props     Properties `json:"properties"`
+	Release   string     `json:"release"`
+	MaxMem    string     `json:"maxmem"`
+	MinMem    string     `json:"minmem"`
+	AutoStart bool       `json:"autostart"`
+	Flavor    string     `json:"flavor"`
+	UUID      string     `json:"uuid"`
 }
 
 // NewServer creates a new instance of Server, and sets up the serverdir
-func NewServer(owner string, formData CreateForm, port int) (Server, error) {
+func NewServer(owner string, formData forms.NewServer, port int) (Server, error) {
 	var s = Server{
 		Name:      formData.Name,
 		Owner:     owner,
@@ -43,7 +51,7 @@ func NewServer(owner string, formData CreateForm, port int) (Server, error) {
 	}
 
 	var err error
-	var props ServerProperties
+	var props Properties
 	var suuid uuid.UUID
 	for err == nil {
 		suuid, err = uuid.NewRandom()
@@ -57,15 +65,28 @@ func NewServer(owner string, formData CreateForm, port int) (Server, error) {
 			err = errors.New("unable to find an available port")
 		}
 
-		err = os.Mkdir(s.ServerDir(), 0770)
+		// attempt download first (no-op if it exists)
+		if !storage.JarExists(s.Flavor, s.Release) {
+			var err error
+			switch s.Flavor {
+			case "vanilla":
+				err = vanilla.DownloadReleases([]string{s.Release})
+			default:
+				err = errors.New("invalid flavor specified")
+			}
+
+			if err != nil {
+				return s, err
+			}
+		}
+
+		err = storage.MakeServerDir(s.UUID)
 		if err != nil {
 			return s, err
 		}
 
 		err = writeDefaultPropertiesFile(s.ServerDir())
-
 		props, err = readServerProperties(s.ServerDir())
-
 		props.set("enable-rcon", "true")
 		props.set("rcon.password", "admin")
 		props.set("motd", formData.MOTD)
@@ -75,7 +96,7 @@ func NewServer(owner string, formData CreateForm, port int) (Server, error) {
 		s.Props = props
 
 		err = acceptEULA(s.ServerDir())
-		err = copyJar(s.Release, s.ServerDir())
+		err = storage.DeployJar(s.Flavor, s.Release, s.UUID)
 		break
 	}
 
@@ -103,7 +124,7 @@ func NewServerFromFile(serverDir string) (Server, error) {
 // LoadServer creates a new instance of Server from an existing serverdir
 func LoadServer(serverDir string) (Server, error) {
 	s, err := NewServerFromFile(serverDir)
-	var props ServerProperties
+	var props Properties
 	for err == nil {
 		props, err = readServerProperties(serverDir)
 		s.Props = props
@@ -163,7 +184,7 @@ func (s *Server) Backup() error {
 
 // Rcon sends a message to the server's rcon
 func (s *Server) Rcon(msg string) (string, error) {
-	return rconSend(msg, s.Props["rcon.port"], s.Props["rcon.password"])
+	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
 }
 
 // IsRunning attempts to determine if the server is running by checking rcon connect
@@ -188,7 +209,7 @@ func (s *Server) Save() error {
 
 // ServerDir builds the path to the server storage dir
 func (s *Server) ServerDir() string {
-	return filepath.Join(STORAGEDIR, "servers", s.UUID)
+	return filepath.Join(storage.STORAGEDIR, "servers", s.UUID)
 }
 
 // Stop broadcasts a message to the server then stops it after the delay
@@ -212,7 +233,7 @@ func (s *Server) Stop(delay int) error {
 func (s *Server) Delete() error {
 	var err error
 	for err == nil {
-		if !filepath.HasPrefix(s.ServerDir(), filepath.Join(STORAGEDIR, "servers")) {
+		if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.STORAGEDIR, "servers")) {
 			err = errors.New("refusing to delete " + s.ServerDir())
 		}
 
@@ -258,7 +279,8 @@ type ServerWebView struct {
 	AmOwner   bool   `json:"amowner"`
 }
 
-func opServersWebView(opName string) map[string]ServerWebView {
+// OpServersWebView is a web view of a list of servers
+func OpServersWebView(opName string) map[string]ServerWebView {
 	var result = make(map[string]ServerWebView)
 	if opName == "" {
 		return result
@@ -333,7 +355,7 @@ func (s *Server) AddOp(name string, force bool) error {
 		return err
 	}
 
-	uuid, err := playerUUIDLookup(name)
+	uuid, err := auth.PlayerUUIDLookup(name)
 	if err != nil {
 		return err
 	}
@@ -366,15 +388,15 @@ func ServersWithOp(opName string) map[string]Server {
 	return servers
 }
 
-// nextAvailablePort will return the next available server port
+// NextAvailablePort will return the next available server port
 // one should loadServers() before this to ensure accurate data
-func nextAvailablePort() int {
+func NextAvailablePort() int {
 	var err error
 	var highest = 25564 // one less than the default server port (we increment it on return)
 
 	for err == nil {
 		// loop over servers and find highest used port number
-		err = loadServers() // get current server data
+		err = LoadServers() // get current server data
 
 		for _, s := range Servers {
 			port := s.Props.get("server-port")
@@ -397,4 +419,39 @@ func nextAvailablePort() int {
 
 	// rcon port is 10k less than the server port
 	return highest + 1
+}
+
+// LoadServers loads servers from disk and caches results
+func LoadServers() error {
+	var servers = make(map[string]Server)
+	var basedir = filepath.Join(storage.STORAGEDIR, "servers")
+	entries, err := os.ReadDir(basedir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			var name = entry.Name()
+			var entrydir = filepath.Join(basedir, name)
+			s, err := LoadServer(entrydir)
+			if err != nil {
+				fmt.Printf("error loading %s: %s\n", entrydir, err.Error())
+			} else {
+				servers[s.UUID] = s
+			}
+		}
+	}
+
+	Servers = servers
+	return nil
+}
+
+func inList(needle string, haystack []string) bool {
+	for _, item := range haystack {
+		if item == needle {
+			return true
+		}
+	}
+	return false
 }

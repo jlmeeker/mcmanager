@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bufio"
@@ -10,11 +10,11 @@ import (
 	"strings"
 )
 
-// ServerProperties is a hash of key:value pairs contained in the server.properties file
-type ServerProperties map[string]string
+// Properties is a hash of key:value pairs contained in the server.properties file
+type Properties map[string]string
 
-func readServerProperties(serverdir string) (ServerProperties, error) {
-	var c = make(ServerProperties)
+func readServerProperties(serverdir string) (Properties, error) {
+	var c = make(Properties)
 
 	fileBytes, err := os.ReadFile(filepath.Join(serverdir, "server.properties"))
 	if err != nil {
@@ -41,7 +41,7 @@ func readServerProperties(serverdir string) (ServerProperties, error) {
 	return c, nil
 }
 
-func (sp ServerProperties) writeToFile(serverdir string) error {
+func (sp Properties) writeToFile(serverdir string) error {
 	var keys []string
 	for key := range sp {
 		keys = append(keys, key)
@@ -66,17 +66,17 @@ func (sp ServerProperties) writeToFile(serverdir string) error {
 	return nil
 }
 
-func (sp ServerProperties) set(key, value string) {
+func (sp Properties) set(key, value string) {
 	sp[key] = value
 }
 
-func (sp *ServerProperties) setPort(port int) {
+func (sp *Properties) setPort(port int) {
 	sp.set("server-port", fmt.Sprintf("%d", port))
 	sp.set("query.port", fmt.Sprintf("%d", port))
 	sp.set("rcon.port", fmt.Sprintf("%d", port-10000))
 }
 
-func (sp ServerProperties) get(key string) string {
+func (sp Properties) get(key string) string {
 	if val, ok := sp[key]; ok {
 		return val
 	}
