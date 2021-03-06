@@ -20,7 +20,12 @@
                 </div>
                 <div class="mb-3">
                     <label for="flavor" class="form-label">Flavor</label>
-                    <input type="text" class="form-control" name="flavor" id="flavor" value="vanilla">
+                    <select class="form-select" aria-label="release" name="flavor" id="flavor">
+                        {{- range .Releases.Flavors}}
+                        <option value="{{.}}">{{.}}</option>
+                        {{- end}}
+                    </select>
+                    <!--<input type="text" class="form-control" name="flavor" id="flavor" value="vanilla">-->
                 </div>
                 <div class="mb-3">
                     <label for="release" class="form-label">Release</label>

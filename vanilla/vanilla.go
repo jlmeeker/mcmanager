@@ -48,7 +48,7 @@ func RefreshReleases() error {
 	return err
 }
 
-func getDownloadURL(versionURL, version string) (string, int64, error) {
+func getDownloadURL(versionURL, version string) (string, error) {
 	type VersionDetails struct {
 		ID        string `json:"id"`
 		Downloads struct {
@@ -62,21 +62,21 @@ func getDownloadURL(versionURL, version string) (string, int64, error) {
 	var vDetails VersionDetails
 	resp, err := http.Get(versionURL)
 	if err != nil {
-		return "", 0, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &vDetails)
 	if err != nil {
-		return "", 0, err
+		return "", err
 	}
 
 	if vDetails.ID == version {
-		return vDetails.Downloads.Server.URL, vDetails.Downloads.Server.Size, nil
+		return vDetails.Downloads.Server.URL, nil
 	}
 
-	return "", 0, nil
+	return "", nil
 }
 
 // DownloadReleases will find and download the latest release
@@ -94,11 +94,11 @@ func DownloadReleases(versions []string) error {
 	for _, v := range Releases.Versions {
 		for _, version := range versions {
 			if v.ID == version {
-				vURL, vSIZE, err := getDownloadURL(v.URL, v.ID)
+				vURL, err := getDownloadURL(v.URL, v.ID)
 				if err != nil {
 					return err
 				}
-				err = storage.DownloadJar("vanilla", v.ID, vURL, vSIZE)
+				err = storage.DownloadJar("vanilla", v.ID, vURL, false)
 				if err != nil {
 					return err
 				}

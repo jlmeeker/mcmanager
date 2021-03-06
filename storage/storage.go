@@ -14,9 +14,10 @@ import (
 
 // Necesary storage directories
 var (
-	STORAGEDIR string
-	JARDIR     string
-	SERVERDIR  string
+	STORAGEDIR   string
+	JARDIR       string
+	SERVERDIR    string
+	SPIGOTBLDDIR string
 )
 
 // Default file and directory permissions
@@ -30,12 +31,14 @@ func Prepare(sd string) error {
 	STORAGEDIR = sd
 	JARDIR = filepath.Join(STORAGEDIR, "jars")
 	SERVERDIR = filepath.Join(STORAGEDIR, "servers")
+	SPIGOTBLDDIR = filepath.Join(STORAGEDIR, "spigot")
 
 	var err error
 	for err == nil {
 		err = os.MkdirAll(STORAGEDIR, DEFAULTDIRPERM)
 		err = makeSubDir(STORAGEDIR, "jars")
 		err = makeSubDir(STORAGEDIR, "servers")
+		err = makeSubDir(STORAGEDIR, "spigot")
 		break
 	}
 
@@ -69,18 +72,29 @@ func DeployJar(flavor, release, serverID string) error {
 
 // JarExists returns whether or now a jar file is available in storage
 func JarExists(flavor, release string) bool {
-	_, err := os.Stat(filepath.Join(JARDIR, flavor, release+".jar"))
-	if err != nil {
-		fmt.Println(err.Error())
-		return false
+	var path = filepath.Join(JARDIR, flavor, release+".jar")
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
 	}
 
+	fmt.Println(err.Error())
+	return false
+}
+
+func validateContentType(ctype string) bool {
+	var validContentTypes = []string{"application/java-archive", "application/octet-stream"}
+	for _, validType := range validContentTypes {
+		if validType == ctype {
+			return true
+		}
+	}
 	return false
 }
 
 // DownloadJar downloads a jar file
-func DownloadJar(flavor, release, jarURL string, size int64) error {
-	if JarExists(flavor, release) {
+func DownloadJar(flavor, release, jarURL string, force bool) error {
+	if JarExists(flavor, release) && !force {
 		return nil
 	}
 
@@ -101,7 +115,7 @@ func DownloadJar(flavor, release, jarURL string, size int64) error {
 	}
 	defer resp.Body.Close()
 
-	if !contentTypeIsCorrect("application/octet-stream", resp.Header.Get("Content-Type")) {
+	if !validateContentType(resp.Header.Get("Content-Type")) {
 		return fmt.Errorf("Wrong content type: %v", resp.Header.Get("Content-Type"))
 	}
 

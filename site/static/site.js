@@ -57,16 +57,25 @@ function closeModal(id) {
 
 // All Forms (new server, login etc.)
 function submitForm(loc, form){
+  if (loc == "/v1/create" && form.flavor.value == "spigot") {
+    document.getElementById('warningToastBody').innerText = "Could take a while, may need to build release.";
+    toastList[3]._config.delay = 2000;
+    toastList[3].show(); // warningToast
+  }
+
   var data = new FormData(form);
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
+      var replyObj = JSON.parse(this.responseText);
       if (this.status == 200) {
-        var replyObj = JSON.parse(this.responseText);
         form.reset();
+
         document.getElementById('successToastBody').innerText = "Success";
         toastList[0].show(); // successToast
+
         if (loc == "/v1/create") {
+          toastList[3]._config.delay = 5000;
           closeModal('newServerModal');
           if (replyObj.page == "servers") {
             fetchServers();
@@ -81,7 +90,7 @@ function submitForm(loc, form){
           closeModal('logInModal');
         }
       } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
         toastList[1].show(); // dangerToast
       }
     }

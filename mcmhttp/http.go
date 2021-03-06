@@ -19,21 +19,6 @@ import (
 // APPTITLE is the name of app displayed in the web UI
 var APPTITLE string
 
-/*
-func getFileSystem() fs.FS {
-	//if gin.Mode() == gin.DebugMode {
-	//	return os.DirFS("site")
-	//}
-
-	fsys, err := fs.Sub(embededFiles, "site")
-	if err != nil {
-		panic(err)
-	}
-
-	return fsys
-}
-*/
-
 // Listen starts the Gin web server
 func Listen(appTitle, addr string, webfiles *fs.FS) {
 	APPTITLE = appTitle
@@ -82,6 +67,7 @@ type PageData struct {
 	AppTitle      string
 	Page          string
 	Releases      struct {
+		Flavors []string
 		Vanilla releases.VersionFile
 	}
 	Servers map[string]server.ServerWebView
@@ -292,6 +278,7 @@ func defaultHandler(c *gin.Context) {
 	pd := PageData{
 		AppTitle: APPTITLE,
 	}
+	pd.Releases.Flavors = releases.FLAVORS
 	pd.Releases.Vanilla = vanilla.Releases
 
 	token, _ := c.Cookie("token")

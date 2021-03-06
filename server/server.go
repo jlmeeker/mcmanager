@@ -17,15 +17,14 @@ import (
 	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
 	"github.com/jlmeeker/mcmanager/rcon"
+	"github.com/jlmeeker/mcmanager/releases"
+	"github.com/jlmeeker/mcmanager/spigot"
 	"github.com/jlmeeker/mcmanager/storage"
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
 
 // Servers is the global list of managed servers
 var Servers = make(map[string]Server)
-
-// FLAVORS is a list of supported minecraft flavors
-var FLAVORS = []string{"vanilla"}
 
 // Server is an instance of a server, tracked during runtime
 type Server struct {
@@ -57,7 +56,7 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 		suuid, err = uuid.NewRandom()
 		s.UUID = suuid.String()
 
-		if !inList(s.Flavor, FLAVORS) {
+		if !releases.FlavorIsValid(s.Flavor) {
 			err = errors.New("invalid flavor")
 		}
 
@@ -71,8 +70,8 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 			switch s.Flavor {
 			case "vanilla":
 				err = vanilla.DownloadReleases([]string{s.Release})
-			default:
-				err = errors.New("invalid flavor specified")
+			case "spigot":
+				err = spigot.Build(s.Release)
 			}
 
 			if err != nil {

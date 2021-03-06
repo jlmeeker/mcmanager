@@ -1,5 +1,8 @@
 package releases
 
+// FLAVORS is a list of our supported server flavors
+var FLAVORS = []string{"vanilla", "spigot"}
+
 // Version is the (important) fields for each release in the version_manifest.json file
 type Version struct {
 	ID          string `json:"id"`
@@ -15,4 +18,14 @@ type VersionFile struct {
 		Snapshot string
 	}
 	Versions []Version
+}
+
+// FlavorIsValid returns if a given flavor is in the list of FLAVORS
+func FlavorIsValid(flavor string) bool {
+	for _, f := range FLAVORS {
+		if f == flavor {
+			return true
+		}
+	}
+	return false
 }
