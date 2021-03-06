@@ -44,6 +44,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 
 	v1 := router.Group("/v1")
 	{
+		v1.POST("/addop/:serverid", apiv1.AddOp)
 		v1.POST("/backup/:serverid", apiv1.Backup)
 		v1.POST("/clear/:serverid", apiv1.ClearWeather)
 		v1.POST("/create", apiv1.Create)

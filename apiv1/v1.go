@@ -12,6 +12,44 @@ import (
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
 
+func AddOp(c *gin.Context) {
+	var success = http.StatusUnauthorized
+	var formData forms.AddOp
+
+	var data = gin.H{
+		"result": success,
+	}
+
+	serverID := c.Param("serverid")
+	err := c.Bind(&formData)
+	if err == nil {
+		token, _ := c.Cookie("token")
+		playerName, _ := c.Cookie("player")
+		if auth.VerifyToken(playerName, token) {
+			if s, ok := server.Servers[serverID]; ok {
+				err = s.AddOp(formData.OpName, false)
+				if err != nil {
+					err = fmt.Errorf("Unable to add op: %s", err.Error())
+					success = http.StatusInternalServerError
+				} else {
+					success = http.StatusOK
+				}
+			} else {
+				success = http.StatusNotFound
+			}
+		} else {
+			err = fmt.Errorf("must be logged in to create a server")
+		}
+	} else {
+		err = fmt.Errorf("invalid form data received")
+	}
+
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
+}
+
 func Backup(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error

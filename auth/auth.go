@@ -126,3 +126,5 @@ func PlayerUUIDLookup(player string) (string, error) {
 
 	return fmt.Sprintf("%s-%s-%s-%s-%s", reply[0].ID[0:8], reply[0].ID[8:12], reply[0].ID[12:16], reply[0].ID[16:20], reply[0].ID[20:]), err
 }
+
+//{"error":"BadRequestException","errorMessage":" is invalid"}

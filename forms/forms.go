@@ -17,3 +17,8 @@ type Login struct {
 	Password string `form:"password"`
 	Page     string `form:"page"`
 }
+
+// AddOp is the structure of the data extected from the addop web form
+type AddOp struct {
+	OpName string `form:"opname"`
+}

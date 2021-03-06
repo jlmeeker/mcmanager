@@ -1,4 +1,12 @@
 // Server Actions
+function addOp(serverID) {
+  var opname = prompt("Player name of the new Op:");
+  if (opname != "") {
+    serverOpAdd(serverID, opname, "addop");
+  }
+}
+
+
 function backupServer(id) {
   serverAction(id, "backup");
 }
@@ -44,6 +52,29 @@ function serverAction(id, action) {
   };
   xhttp.open("POST", "/v1/"+action+"/"+id, true);
   xhttp.send();
+}
+
+function serverOpAdd(id, opname) {
+  var data = new FormData();
+  data.append("opname", opname);
+
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      var replyObj = JSON.parse(this.responseText);
+      if (this.status == 200) {
+        document.getElementById('successToastBody').innerText = "Action successful";
+        toastList[0].show(); // successToast
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
+        toastList[1].show(); // dangerToast
+      }
+      fetchServers();
+    }
+  };
+  xhttp.open("POST", "/v1/addop/"+id, true);
+  //xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(data);
 }
 
 
@@ -225,6 +256,9 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header">`+item.name+`
             <div class="mb-0" style="float: right;">
+              <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
+                <i class="bi-person-lines-fill text-info"></i>
+              </a>
               <a id="weatherIndicator_`+item.uuid+`" title="clear weather" href="#" class="hidden" onClick="weatherClear('`+item.uuid+`')">
                 <i class="bi-cloud-sun text-primary"></i>
               </a>
@@ -256,10 +290,12 @@ function newServerCard(item) {
               <strong>Players:</strong> `+item.players+`<br>
             </p>
         </div>
+      </div>
     </div>
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {
+    document.getElementById("addOpIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("backupIndicator_"+item.uuid).classList.remove("hidden");
