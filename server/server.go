@@ -134,46 +134,58 @@ func LoadServer(serverDir string) (Server, error) {
 	return s, s.Save()
 }
 
-// Players gets player list
-func (s *Server) Players() string {
-	reply, err := s.Rcon("list")
-	if err != nil {
-		return ""
-	}
-
-	parts := strings.Split(reply, ":")
-	if len(parts) < 2 {
-		return ""
-	}
-
-	return parts[1]
-}
-
-// Start starts the server (expected to be run as a goroutine)
-func (s Server) Start() error {
-	if s.IsRunning() {
-		return errors.New("server already running")
-	}
-
-	var args = []string{"-Xms512M", "-Xmx2G", "-jar", s.Release + ".jar", "--nogui"}
-	var cwd = s.ServerDir()
-	var cmd = exec.Command("java", args...)
-	cmd.Dir = cwd
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-		Pgid:    0,
-	}
-	err := cmd.Start()
+// LoadServers loads servers from disk and caches results
+func LoadServers() error {
+	var servers = make(map[string]Server)
+	var basedir = filepath.Join(storage.STORAGEDIR, "servers")
+	entries, err := os.ReadDir(basedir)
 	if err != nil {
 		return err
 	}
 
-	return cmd.Process.Release()
+	for _, entry := range entries {
+		if entry.IsDir() {
+			var name = entry.Name()
+			var entrydir = filepath.Join(basedir, name)
+			s, err := LoadServer(entrydir)
+			if err != nil {
+				fmt.Printf("error loading %s: %s\n", entrydir, err.Error())
+			} else {
+				servers[s.UUID] = s
+			}
+		}
+	}
+
+	Servers = servers
+	return nil
+}
+
+// AddOp will add a user as an op (loading the ops.json file contents first, unless forced)
+func (s *Server) AddOp(name string, force bool) error {
+	ops, err := s.LoadOps()
+	if err != nil && force == false {
+		return err
+	}
+
+	uuid, err := auth.PlayerUUIDLookup(name)
+	if err != nil {
+		return err
+	}
+
+	var o = Op{
+		UUID:              uuid,
+		Name:              name,
+		Level:             4,
+		BypassPlayerLimit: true,
+	}
+
+	ops = append(ops, o)
+	return s.SaveOps(ops)
 }
 
 // Backup will instruct the server to perform a save-all operation
 func (s *Server) Backup() error {
-	_, err := s.Rcon("save-all")
+	_, err := s.rcon("save-all")
 	if err != nil {
 		return err
 	}
@@ -182,58 +194,11 @@ func (s *Server) Backup() error {
 
 // Day will instruct the server to set the time to day
 func (s *Server) Day() error {
-	_, err := s.Rcon("time set day")
+	_, err := s.rcon("time set day")
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-// Rcon sends a message to the server's rcon
-func (s *Server) Rcon(msg string) (string, error) {
-	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
-}
-
-// IsRunning attempts to determine if the server is running by checking rcon connect
-func (s *Server) IsRunning() bool {
-	conn, err := net.Dial("tcp", "localhost:"+s.Props["rcon.port"])
-	if err == nil {
-		conn.Close()
-		return true
-	}
-	return false
-}
-
-// Save writes the server config to disk
-func (s *Server) Save() error {
-	b, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(filepath.Join(s.ServerDir(), "managed.json"), b, 0640)
-}
-
-// ServerDir builds the path to the server storage dir
-func (s *Server) ServerDir() string {
-	return filepath.Join(storage.STORAGEDIR, "servers", s.UUID)
-}
-
-// Stop broadcasts a message to the server then stops it after the delay
-func (s *Server) Stop(delay int) error {
-	// Stopping a non-running server is a no-op
-	if !s.IsRunning() {
-		return nil
-	}
-
-	_, err := s.Rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay))
-	if err != nil {
-		return err
-	}
-
-	time.Sleep(time.Duration(delay) * time.Second)
-	_, err = s.Rcon("stop")
-	return err
 }
 
 // Delete is WAY scary!!!
@@ -261,73 +226,14 @@ func (s *Server) Delete() error {
 	return err
 }
 
-// Ops will return a list of ops contained in the server's ops.json file (a zero-error equivalent of LoadOps)
-func (s *Server) Ops() []Op {
-	ops, err := s.LoadOps()
-	if err != nil {
-		fmt.Printf("ERROR loading ops: %s\n", err.Error())
+// IsRunning attempts to determine if the server is running by checking rcon connect
+func (s *Server) IsRunning() bool {
+	conn, err := net.Dial("tcp", "localhost:"+s.Props["rcon.port"])
+	if err == nil {
+		conn.Close()
+		return true
 	}
-	return ops
-}
-
-// ServerWebView web view of a server instance
-type ServerWebView struct {
-	Name      string `json:"name"`
-	Release   string `json:"release"`
-	Running   bool   `json:"running"`
-	Port      string `json:"port"`
-	AutoStart bool   `json:"autostart"`
-	Players   string `json:"players"`
-	MOTD      string `json:"motd"`
-	Flavor    string `json:"flavor"`
-	Ops       string `json:"ops"`
-	UUID      string `json:"uuid"`
-	Owner     string `json:"owner"`
-	AmOwner   bool   `json:"amowner"`
-}
-
-// OpServersWebView is a web view of a list of servers
-func OpServersWebView(opName string) map[string]ServerWebView {
-	var result = make(map[string]ServerWebView)
-	if opName == "" {
-		return result
-	}
-	for _, s := range ServersWithOp(opName) {
-		var ops []string
-		for _, op := range s.Ops() {
-			ops = append(ops, op.Name)
-		}
-
-		var amowner bool
-		if opName == s.Owner {
-			amowner = true
-		}
-
-		result[s.Name] = ServerWebView{
-			Name:      s.Name,
-			Release:   s.Release,
-			Running:   s.IsRunning(),
-			Port:      s.Props["server-port"],
-			AutoStart: s.AutoStart,
-			Players:   s.Players(),
-			MOTD:      s.Props["motd"],
-			Flavor:    s.Flavor,
-			Ops:       strings.Join(ops, ", "),
-			UUID:      s.UUID,
-			Owner:     s.Owner,
-			AmOwner:   amowner,
-		}
-	}
-
-	return result
-}
-
-// Op is the structure of an op within the ops.json file
-type Op struct {
-	UUID              string `json:"uuid"`
-	Name              string `json:"name"`
-	Level             int8   `json:"level"`
-	BypassPlayerLimit bool   `json:"bypassesPlayerLimit"`
+	return false
 }
 
 // LoadOps will read in the contents of the server's ops.json file
@@ -345,6 +251,45 @@ func (s *Server) LoadOps() ([]Op, error) {
 	return o, nil
 }
 
+// Ops will return a list of ops contained in the server's ops.json file (a zero-error equivalent of LoadOps)
+func (s *Server) Ops() []Op {
+	ops, err := s.LoadOps()
+	if err != nil {
+		fmt.Printf("ERROR loading ops: %s\n", err.Error())
+	}
+	return ops
+}
+
+// Players gets player list
+func (s *Server) Players() string {
+	reply, err := s.rcon("list")
+	if err != nil {
+		return ""
+	}
+
+	parts := strings.Split(reply, ":")
+	if len(parts) < 2 {
+		return ""
+	}
+
+	return parts[1]
+}
+
+// Rcon sends a message to the server's rcon
+func (s *Server) rcon(msg string) (string, error) {
+	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
+}
+
+// Save writes the server config to disk
+func (s *Server) Save() error {
+	b, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filepath.Join(s.ServerDir(), "managed.json"), b, 0640)
+}
+
 // SaveOps will save the provided ops to the server's ops.json (overwrites the contents)
 func (s *Server) SaveOps(ops []Op) error {
 	b, err := json.MarshalIndent(ops, "", "  ")
@@ -355,36 +300,109 @@ func (s *Server) SaveOps(ops []Op) error {
 	return os.WriteFile(filepath.Join(s.ServerDir(), "ops.json"), b, 0640)
 }
 
-// AddOp will add a user as an op (loading the ops.json file contents first, unless forced)
-func (s *Server) AddOp(name string, force bool) error {
-	ops, err := s.LoadOps()
-	if err != nil && force == false {
-		return err
+// ServerDir builds the path to the server storage dir
+func (s *Server) ServerDir() string {
+	return filepath.Join(storage.SERVERDIR, s.UUID)
+}
+
+// Start starts the server (expected to be run as a goroutine)
+func (s Server) Start() error {
+	if s.IsRunning() {
+		return errors.New("server already running")
 	}
 
-	uuid, err := auth.PlayerUUIDLookup(name)
+	var args = []string{"-Xms512M", "-Xmx2G", "-jar", s.Release + ".jar", "--nogui"}
+	var cwd = s.ServerDir()
+	var cmd = exec.Command("java", args...)
+	cmd.Dir = cwd
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
+	err := cmd.Start()
 	if err != nil {
 		return err
 	}
 
-	var o = Op{
-		UUID:              uuid,
-		Name:              name,
-		Level:             4,
-		BypassPlayerLimit: true,
+	return cmd.Process.Release()
+}
+
+// Stop broadcasts a message to the server then stops it after the delay
+func (s *Server) Stop(delay int) error {
+	// Stopping a non-running server is a no-op
+	if !s.IsRunning() {
+		return nil
 	}
 
-	ops = append(ops, o)
-	return s.SaveOps(ops)
+	_, err := s.rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay))
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(time.Duration(delay) * time.Second)
+	_, err = s.rcon("stop")
+	return err
 }
 
 // WeatherClear will instruct the server to perform a save-all operation
 func (s *Server) WeatherClear() error {
-	_, err := s.Rcon("weather clear")
+	_, err := s.rcon("weather clear")
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// WebView web view of a server instance
+type WebView struct {
+	Name      string `json:"name"`
+	Release   string `json:"release"`
+	Running   bool   `json:"running"`
+	Port      string `json:"port"`
+	AutoStart bool   `json:"autostart"`
+	Players   string `json:"players"`
+	MOTD      string `json:"motd"`
+	Flavor    string `json:"flavor"`
+	Ops       string `json:"ops"`
+	UUID      string `json:"uuid"`
+	Owner     string `json:"owner"`
+	AmOwner   bool   `json:"amowner"`
+}
+
+// OpServersWebView is a web view of a list of servers
+func OpServersWebView(opName string) map[string]WebView {
+	var result = make(map[string]WebView)
+	if opName == "" {
+		return result
+	}
+	for _, s := range ServersWithOp(opName) {
+		var ops []string
+		for _, op := range s.Ops() {
+			ops = append(ops, op.Name)
+		}
+
+		var amowner bool
+		if opName == s.Owner {
+			amowner = true
+		}
+
+		result[s.Name] = WebView{
+			Name:      s.Name,
+			Release:   s.Release,
+			Running:   s.IsRunning(),
+			Port:      s.Props["server-port"],
+			AutoStart: s.AutoStart,
+			Players:   s.Players(),
+			MOTD:      s.Props["motd"],
+			Flavor:    s.Flavor,
+			Ops:       strings.Join(ops, ", "),
+			UUID:      s.UUID,
+			Owner:     s.Owner,
+			AmOwner:   amowner,
+		}
+	}
+
+	return result
 }
 
 //ServersWithOp returns a list of servers the Op owns or is an op on
@@ -435,32 +453,6 @@ func NextAvailablePort() int {
 
 	// rcon port is 10k less than the server port
 	return highest + 1
-}
-
-// LoadServers loads servers from disk and caches results
-func LoadServers() error {
-	var servers = make(map[string]Server)
-	var basedir = filepath.Join(storage.STORAGEDIR, "servers")
-	entries, err := os.ReadDir(basedir)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			var name = entry.Name()
-			var entrydir = filepath.Join(basedir, name)
-			s, err := LoadServer(entrydir)
-			if err != nil {
-				fmt.Printf("error loading %s: %s\n", entrydir, err.Error())
-			} else {
-				servers[s.UUID] = s
-			}
-		}
-	}
-
-	Servers = servers
-	return nil
 }
 
 func inList(needle string, haystack []string) bool {

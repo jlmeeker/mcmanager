@@ -255,7 +255,7 @@ func Releases(c *gin.Context) {
 }
 
 func Servers(c *gin.Context) {
-	var result = make(map[string]server.ServerWebView)
+	var result = make(map[string]server.WebView)
 	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
 	if !auth.VerifyToken(playerName, token) {

@@ -72,7 +72,7 @@ type PageData struct {
 		Flavors []string
 		Vanilla releases.VersionFile
 	}
-	Servers map[string]server.ServerWebView
+	Servers map[string]server.WebView
 	Status  struct {
 		Uptime string
 	}
