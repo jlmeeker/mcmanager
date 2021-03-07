@@ -263,6 +263,25 @@ func (s *Server) Delete() error {
 	return err
 }
 
+// IsOp returns if a given player name is found in the list of server ops
+func (s *Server) IsOp(player string) bool {
+	var ops = s.Ops()
+	for _, op := range ops {
+		if op.Name == player {
+			return true
+		}
+	}
+	return false
+}
+
+// IsOwner returns if a given player name the server owner
+func (s *Server) IsOwner(player string) bool {
+	if player == s.Owner {
+		return true
+	}
+	return false
+}
+
 // IsRunning attempts to determine if the server is running by checking rcon connect
 func (s *Server) IsRunning() bool {
 	conn, err := net.Dial("tcp", "localhost:"+s.Props["rcon.port"])
@@ -310,25 +329,6 @@ func (s *Server) Players() string {
 	}
 
 	return parts[1]
-}
-
-// IsOp returns if a given player name is found in the list of server ops
-func (s *Server) IsOp(player string) bool {
-	var ops = s.Ops()
-	for _, op := range ops {
-		if op.Name == player {
-			return true
-		}
-	}
-	return false
-}
-
-// IsOwner returns if a given player name the server owner
-func (s *Server) IsOwner(player string) bool {
-	if player == s.Owner {
-		return true
-	}
-	return false
 }
 
 // Rcon sends a message to the server's rcon
@@ -409,6 +409,21 @@ func (s *Server) WeatherClear() error {
 	return nil
 }
 
+// Whitelist returns the list of whitelisted players
+func (s *Server) Whitelist() string {
+	reply, err := s.rcon("whitelist list")
+	if err != nil {
+		return ""
+	}
+
+	parts := strings.Split(reply, ":")
+	if len(parts) < 2 {
+		return ""
+	}
+
+	return parts[1]
+}
+
 // WhitelistAdd will instruct the server to whitelist a player
 func (s *Server) WhitelistAdd(playerName string) error {
 	_, err := s.rcon(fmt.Sprintf("whitelist add %s", playerName))
@@ -420,19 +435,20 @@ func (s *Server) WhitelistAdd(playerName string) error {
 
 // WebView web view of a server instance
 type WebView struct {
-	Name      string `json:"name"`
-	Release   string `json:"release"`
-	Running   bool   `json:"running"`
-	Port      string `json:"port"`
-	AutoStart bool   `json:"autostart"`
-	Players   string `json:"players"`
-	MOTD      string `json:"motd"`
-	Flavor    string `json:"flavor"`
-	Ops       string `json:"ops"`
-	UUID      string `json:"uuid"`
-	Owner     string `json:"owner"`
-	AmOwner   bool   `json:"amowner"`
-	WhiteList string `json:"whitelist"`
+	Name             string `json:"name"`
+	Release          string `json:"release"`
+	Running          bool   `json:"running"`
+	Port             string `json:"port"`
+	AutoStart        bool   `json:"autostart"`
+	Players          string `json:"players"`
+	MOTD             string `json:"motd"`
+	Flavor           string `json:"flavor"`
+	Ops              string `json:"ops"`
+	UUID             string `json:"uuid"`
+	Owner            string `json:"owner"`
+	AmOwner          bool   `json:"amowner"`
+	WhiteListEnabled string `json:"whitelistenabled"`
+	WhiteList        string `json:"whitelist"`
 }
 
 // OpServersWebView is a web view of a list of servers
@@ -453,19 +469,20 @@ func OpServersWebView(opName string) map[string]WebView {
 		}
 
 		result[s.Name] = WebView{
-			Name:      s.Name,
-			Release:   s.Release,
-			Running:   s.IsRunning(),
-			Port:      s.Props["server-port"],
-			AutoStart: s.AutoStart,
-			Players:   s.Players(),
-			MOTD:      s.Props["motd"],
-			Flavor:    s.Flavor,
-			Ops:       strings.Join(ops, ", "),
-			UUID:      s.UUID,
-			Owner:     s.Owner,
-			AmOwner:   amowner,
-			WhiteList: s.Props["enforce-whitelist"],
+			Name:             s.Name,
+			Release:          s.Release,
+			Running:          s.IsRunning(),
+			Port:             s.Props["server-port"],
+			AutoStart:        s.AutoStart,
+			Players:          s.Players(),
+			MOTD:             s.Props["motd"],
+			Flavor:           s.Flavor,
+			Ops:              strings.Join(ops, ", "),
+			UUID:             s.UUID,
+			Owner:            s.Owner,
+			AmOwner:          amowner,
+			WhiteListEnabled: s.Props["enforce-whitelist"],
+			WhiteList:        s.Whitelist(),
 		}
 	}
 

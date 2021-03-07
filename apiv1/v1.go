@@ -27,6 +27,7 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 	}
 }
 
+// AddOp ads an op to a server
 func AddOp(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var formData forms.AddOp
@@ -56,6 +57,7 @@ func AddOp(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Backup runs a backup of a server
 func Backup(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var err error
@@ -77,6 +79,7 @@ func Backup(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// ClearWeather sets the server weather to clear
 func ClearWeather(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
@@ -99,6 +102,7 @@ func ClearWeather(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// CreateHandler creates a new server instance
 func CreateHandler(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var formData forms.NewServer
@@ -132,6 +136,7 @@ func CreateHandler(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Day sets the server time to day
 func Day(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
@@ -154,6 +159,7 @@ func Day(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Delete stops and removes a server... permanently
 func Delete(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
@@ -179,6 +185,7 @@ func Delete(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Login processes a user login request
 func Login(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var formData forms.Login
@@ -210,6 +217,7 @@ func Login(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Logout processes a user logout request
 func Logout(c *gin.Context) {
 	var success = http.StatusOK
 	c.SetCookie("token", "", 0, "/", "", true, true)
@@ -222,16 +230,19 @@ func Logout(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// News returns the current news items
 func News(c *gin.Context) {
 	c.JSON(200, vanilla.News)
 }
 
+// Ping is a simple liveness check
 func Ping(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "pong",
 	})
 }
 
+// Releases returns a list of current, vanilla releases
 func Releases(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	err := vanilla.RefreshReleases()
@@ -242,6 +253,7 @@ func Releases(c *gin.Context) {
 	c.JSON(success, vanilla.Releases)
 }
 
+// Servers returns a list of servers the logged in player is either owner of or op on
 func Servers(c *gin.Context) {
 	var result = make(map[string]server.WebView)
 	playerName, _ := c.Cookie("player")
@@ -249,6 +261,7 @@ func Servers(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// Start starts a server instance
 func Start(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var err error
@@ -270,6 +283,7 @@ func Start(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Stop stops a running instance
 func Stop(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var err error
@@ -289,6 +303,7 @@ func Stop(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// WhitelistAdd adds a player to a server's whitelist
 func WhitelistAdd(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var formData forms.WhitelistAdd

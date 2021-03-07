@@ -278,11 +278,12 @@ function newServerCard(item) {
             <p class="card-text">
               <strong>Flavor:</strong> `+item.flavor+`<br>
               <strong>Release:</strong> `+item.release+`<br>
-              <strong>Whitelist:</strong> `+item.whitelist+`<br>
+              <strong>Whitelist:</strong> `+item.whitelistenabled+`<br>
               <strong>Port:</strong> `+item.port+`<br>
               <strong>Autostart:</strong> `+item.autostart+`<br>
               <strong>Ops:</strong> `+item.ops+`<br>
-              <strong>Players:</strong> `+item.players+`<br>
+              <strong>Whitelisted:</strong> `+item.whitelist+`<br>
+              <strong>Online:</strong> `+item.players+`<br>
             </p>
         </div>
       </div>
