@@ -241,12 +241,28 @@ function refreshServers(data) {
 
 function newServerCard(item) {
   var card = document.createElement("div");
-  card.classList.add("col-sm-6", "col-lg-4", "mb-4");
+  card.classList.add("col-sm-6", "col-lg-6", "mb-4");
   card.id = item.uuid;
   card.innerHTML = `
     <div class="card shadow">
-        <h4 class="card-header">`+item.name+`
-            <div class="mb-0" style="float: right;">
+        <h4 class="card-header bg-light shadow">`+item.name+`
+          <div class="mb-0" style="float: right;">
+            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+              <i class="bi-filter-square text-success"></i>
+            </a>
+            <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
+              <i class="bi-caret-right-square text-success"></i>
+            </a>
+            <a id="stopIndicator_`+item.uuid+`" title="stop" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
+              <i class="bi-exclamation-square text-warning"></i>
+            </a>
+            <a id="deleteIndicator_`+item.uuid+`" title="delete" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
+              <i class="bi-x-square text-danger"></i>
+            </a>
+          </div>
+        </h4>
+        <h4 class="card-header">
+            <div class="mb-0">
               <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
                 <i class="bi-person-plus text-info"></i>
               </a>
@@ -259,22 +275,10 @@ function newServerCard(item) {
               <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
                 <i class="bi-sunrise text-warning"></i>
               </a>
-              <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
-                <i class="bi-filter-square text-success"></i>
-              </a>
-              <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
-                <i class="bi-caret-right-square text-success"></i>
-              </a>
-              <a id="stopIndicator_`+item.uuid+`" title="stop" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
-                <i class="bi-exclamation-square text-warning"></i>
-              </a>
-              <a id="deleteIndicator_`+item.uuid+`" title="delete" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
-                <i class="bi-x-square text-danger"></i>
-              </a>
             </div>
         </h4>
         <div class="card-body bg-light servercard">
-            <h5 class="card-title">`+item.motd+`</h5><br>
+            <h6 class="card-title">`+item.motd+`</h6><br>
             <p class="card-text">
               <strong>Flavor:</strong> `+item.flavor+`<br>
               <strong>Release:</strong> `+item.release+`<br>

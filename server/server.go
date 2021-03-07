@@ -213,6 +213,9 @@ func (s *Server) AddOpOffline(name, uuid string, force bool) error {
 
 // AddOpOnline will add a user as an op using rcon
 func (s *Server) AddOpOnline(playerName string) error {
+	if playerName == "" {
+		return fmt.Errorf("cannot op that user")
+	}
 	_, err := s.rcon(fmt.Sprintf("op %s", playerName))
 	if err != nil {
 		return err

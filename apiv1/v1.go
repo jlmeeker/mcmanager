@@ -17,12 +17,15 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, _ := c.Cookie("token")
 		playerName, _ := c.Cookie("player")
+		//fmt.Printf("authenticating %s\n", playerName)
 
 		ok := auth.VerifyToken(playerName, token)
 		if ok {
+			//fmt.Printf("success %s\n", playerName)
 			c.Next()
 			return
 		}
+		//fmt.Printf("failure %s\n", playerName)
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
@@ -198,8 +201,12 @@ func Login(c *gin.Context) {
 	if err == nil {
 		token, playerName, err := auth.Authenticate(formData.Username, formData.Password)
 		if err == nil {
-			c.SetCookie("token", token, 604800, "/", "", true, true) // 604800 = 1 week
-			c.SetCookie("player", playerName, 604800, "/", "", true, true)
+			var secure bool
+			if c.Request.Proto == "https" {
+				secure = true
+			}
+			c.SetCookie("token", token, 604800, "/", "", secure, true) // 604800 = 1 week
+			c.SetCookie("player", playerName, 604800, "/", "", secure, true)
 			data["success"] = http.StatusOK
 			data["playername"] = playerName
 			data["token"] = token
