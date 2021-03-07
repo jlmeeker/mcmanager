@@ -191,10 +191,10 @@ func LoadServers() error {
 	return nil
 }
 
-// AddOp will add a user as an op
+// AddOpOffline will add a user as an op
 // the force option is to ignore errors from loading the ops.json file
 // like happens when one doesn't exist.
-func (s *Server) AddOp(name, uuid string, force bool) error {
+func (s *Server) AddOpOffline(name, uuid string, force bool) error {
 	ops, err := s.LoadOps()
 	if err != nil && force == false {
 		return err
@@ -209,6 +209,15 @@ func (s *Server) AddOp(name, uuid string, force bool) error {
 
 	ops = append(ops, o)
 	return s.SaveOps(ops)
+}
+
+// AddOpOnline will add a user as an op using rcon
+func (s *Server) AddOpOnline(playerName string) error {
+	_, err := s.rcon(fmt.Sprintf("op %s", playerName))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Backup will instruct the server to perform a save-all operation
@@ -394,6 +403,15 @@ func (s *Server) Stop(delay int) error {
 // WeatherClear will instruct the server to perform a save-all operation
 func (s *Server) WeatherClear() error {
 	_, err := s.rcon("weather clear")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// WhitelistAdd will instruct the server to whitelist a player
+func (s *Server) WhitelistAdd(playerName string) error {
+	_, err := s.rcon(fmt.Sprintf("whitelist add %s", playerName))
 	if err != nil {
 		return err
 	}

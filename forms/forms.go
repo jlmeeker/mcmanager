@@ -23,3 +23,8 @@ type Login struct {
 type AddOp struct {
 	OpName string `form:"opname"`
 }
+
+// WhitelistAdd is the structure of the data extected from the wehitelist add web form
+type WhitelistAdd struct {
+	PlayerName string `form:"playername"`
+}

@@ -30,7 +30,6 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 func AddOp(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var formData forms.AddOp
-	var pUUID string
 	var data = gin.H{
 		"result": success,
 	}
@@ -39,8 +38,7 @@ func AddOp(c *gin.Context) {
 	err := c.Bind(&formData)
 	if err == nil {
 		s := server.Servers[serverID]
-		pUUID, err = auth.PlayerUUIDLookup(formData.OpName)
-		err = s.AddOp(formData.OpName, pUUID, false)
+		err = s.AddOpOnline(formData.OpName)
 		if err != nil {
 			err = fmt.Errorf("Unable to add op: %s", err.Error())
 			success = http.StatusInternalServerError
@@ -114,7 +112,7 @@ func CreateHandler(c *gin.Context) {
 		port := server.NextAvailablePort()
 		s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
 		pUUID, err = auth.PlayerUUIDLookup(playerName)
-		err = s.AddOp(playerName, pUUID, true)
+		err = s.AddOpOffline(playerName, pUUID, true)
 		break
 	}
 
@@ -276,7 +274,6 @@ func Stop(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var err error
 	serverID := c.Param("serverid")
-
 	s := server.Servers[serverID]
 	err = s.Stop(2)
 	if err == nil {
@@ -286,6 +283,35 @@ func Stop(c *gin.Context) {
 	var data = gin.H{
 		"result": success,
 	}
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
+}
+
+func WhitelistAdd(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var formData forms.WhitelistAdd
+	var data = gin.H{
+		"result": success,
+	}
+
+	serverID := c.Param("serverid")
+	err := c.Bind(&formData)
+	if err == nil {
+		s := server.Servers[serverID]
+		err = s.WhitelistAdd(formData.PlayerName)
+		if err != nil {
+			err = fmt.Errorf("Unable to whitelist player: %s", err.Error())
+			success = http.StatusInternalServerError
+		} else {
+			success = http.StatusOK
+		}
+	} else {
+		err = fmt.Errorf("invalid form data received")
+		success = http.StatusBadRequest
+	}
+
 	if err != nil {
 		data["error"] = err.Error()
 	}

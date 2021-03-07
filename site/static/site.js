@@ -4,7 +4,7 @@ function addOp(serverID) {
   if (opname != "") {
     var data = new FormData();
     data.append("opname", opname);
-    serverAction(serverID, "addop", data);
+    serverAction(serverID, "op/add", data);
   }
 }
 
@@ -34,6 +34,15 @@ function stopServer(id) {
 
 function weatherClear(id) {
   serverAction(id, "clear");
+}
+
+function whitelistAdd(serverID) {
+  var playername = prompt("Name of the player to whitelist:");
+  if (playername != "") {
+    var data = new FormData();
+    data.append("playername", playername);
+    serverAction(serverID, "whitelist/add", data);
+  }
 }
 
 function serverAction(id, action, formdata) {
@@ -238,6 +247,9 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header">`+item.name+`
             <div class="mb-0" style="float: right;">
+              <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
+                <i class="bi-person-plus text-info"></i>
+              </a>
               <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
                 <i class="bi-person-lines-fill text-info"></i>
               </a>
@@ -278,6 +290,7 @@ function newServerCard(item) {
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {
+    document.getElementById("whitelistPlayerIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("addOpIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
