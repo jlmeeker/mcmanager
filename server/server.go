@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
 	"github.com/jlmeeker/mcmanager/rcon"
 	"github.com/jlmeeker/mcmanager/releases"
@@ -22,6 +23,36 @@ import (
 	"github.com/jlmeeker/mcmanager/storage"
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
+
+//AuthorizeOpMiddleware middleware
+func AuthorizeOpMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		playerName, _ := c.Cookie("player")
+		serverID := c.Param("serverid")
+		if s, ok := Servers[serverID]; ok {
+			if s.IsOwner(playerName) || s.IsOp(playerName) {
+				c.Next()
+				return
+			}
+		}
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
+
+//AuthorizeOwnerMiddleware middleware
+func AuthorizeOwnerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		playerName, _ := c.Cookie("player")
+		serverID := c.Param("serverid")
+		if s, ok := Servers[serverID]; ok {
+			if s.IsOwner(playerName) {
+				c.Next()
+				return
+			}
+		}
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
 
 // Servers is the global list of managed servers
 var Servers = make(map[string]Server)
@@ -163,14 +194,9 @@ func LoadServers() error {
 // AddOp will add a user as an op
 // the force option is to ignore errors from loading the ops.json file
 // like happens when one doesn't exist.
-func (s *Server) AddOp(name string, force bool) error {
+func (s *Server) AddOp(name, uuid string, force bool) error {
 	ops, err := s.LoadOps()
 	if err != nil && force == false {
-		return err
-	}
-
-	uuid, err := auth.PlayerUUIDLookup(name)
-	if err != nil {
 		return err
 	}
 
@@ -207,7 +233,7 @@ func (s *Server) Day() error {
 func (s *Server) Delete() error {
 	var err error
 	for err == nil {
-		if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.STORAGEDIR, "servers")) {
+		if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.SERVERDIR)) {
 			err = errors.New("refusing to delete " + s.ServerDir())
 		}
 
@@ -275,6 +301,25 @@ func (s *Server) Players() string {
 	}
 
 	return parts[1]
+}
+
+// IsOp returns if a given player name is found in the list of server ops
+func (s *Server) IsOp(player string) bool {
+	var ops = s.Ops()
+	for _, op := range ops {
+		if op.Name == player {
+			return true
+		}
+	}
+	return false
+}
+
+// IsOwner returns if a given player name the server owner
+func (s *Server) IsOwner(player string) bool {
+	if player == s.Owner {
+		return true
+	}
+	return false
 }
 
 // Rcon sends a message to the server's rcon

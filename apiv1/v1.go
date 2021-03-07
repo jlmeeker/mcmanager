@@ -12,10 +12,25 @@ import (
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
 
-func AddOp(c *gin.Context) {
-	var success = http.StatusUnauthorized
-	var formData forms.AddOp
+//AuthenticateMiddleware middleware
+func AuthenticateMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, _ := c.Cookie("token")
+		playerName, _ := c.Cookie("player")
 
+		ok := auth.VerifyToken(playerName, token)
+		if ok {
+			c.Next()
+			return
+		}
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
+
+func AddOp(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var formData forms.AddOp
+	var pUUID string
 	var data = gin.H{
 		"result": success,
 	}
@@ -23,25 +38,18 @@ func AddOp(c *gin.Context) {
 	serverID := c.Param("serverid")
 	err := c.Bind(&formData)
 	if err == nil {
-		token, _ := c.Cookie("token")
-		playerName, _ := c.Cookie("player")
-		if auth.VerifyToken(playerName, token) {
-			if s, ok := server.Servers[serverID]; ok {
-				err = s.AddOp(formData.OpName, false)
-				if err != nil {
-					err = fmt.Errorf("Unable to add op: %s", err.Error())
-					success = http.StatusInternalServerError
-				} else {
-					success = http.StatusOK
-				}
-			} else {
-				success = http.StatusNotFound
-			}
+		s := server.Servers[serverID]
+		pUUID, err = auth.PlayerUUIDLookup(formData.OpName)
+		err = s.AddOp(formData.OpName, pUUID, false)
+		if err != nil {
+			err = fmt.Errorf("Unable to add op: %s", err.Error())
+			success = http.StatusInternalServerError
 		} else {
-			err = fmt.Errorf("must be logged in to create a server")
+			success = http.StatusOK
 		}
 	} else {
 		err = fmt.Errorf("invalid form data received")
+		success = http.StatusBadRequest
 	}
 
 	if err != nil {
@@ -51,25 +59,15 @@ func AddOp(c *gin.Context) {
 }
 
 func Backup(c *gin.Context) {
-	var success = http.StatusUnauthorized
+	var success = http.StatusInternalServerError
 	var err error
 	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			err = s.Backup()
-			if err != nil {
-				err = fmt.Errorf("Backup failed: %s", err.Error())
-				success = http.StatusInternalServerError
-			} else {
-				success = http.StatusOK
-			}
-		} else {
-			success = http.StatusNotFound
-		}
+	s := server.Servers[serverID]
+	err = s.Backup()
+	if err != nil {
+		err = fmt.Errorf("Backup failed: %s", err.Error())
 	} else {
-		err = errors.New("must be logged in")
+		success = http.StatusOK
 	}
 
 	var data = gin.H{
@@ -85,22 +83,13 @@ func ClearWeather(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
 	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			err = s.WeatherClear()
-			if err != nil {
-				err = fmt.Errorf("Unable to change weather: %s", err.Error())
-				success = http.StatusInternalServerError
-			} else {
-				success = http.StatusOK
-			}
-		} else {
-			success = http.StatusNotFound
-		}
+	s := server.Servers[serverID]
+	err = s.WeatherClear()
+	if err != nil {
+		err = fmt.Errorf("Unable to change weather: %s", err.Error())
+		success = http.StatusInternalServerError
 	} else {
-		err = errors.New("must be logged in")
+		success = http.StatusOK
 	}
 
 	var data = gin.H{
@@ -112,47 +101,36 @@ func ClearWeather(c *gin.Context) {
 	c.JSON(success, data)
 }
 
-func Create(c *gin.Context) {
-	var success = http.StatusUnauthorized
+func CreateHandler(c *gin.Context) {
+	var success = http.StatusInternalServerError
 	var formData forms.NewServer
 	var err error
 	var s server.Server
+	var pUUID string
 
-	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		err = c.Bind(&formData)
-		if err == nil {
-			port := server.NextAvailablePort()
-			s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
-			if err == nil {
-				err = s.AddOp(playerName, true)
-				if err != nil {
-					success = http.StatusInternalServerError
-
-					// cleanup
-					s.Delete()
-				} else {
-					success = http.StatusOK
-					server.LoadServers()
-				}
-			} else {
-				success = http.StatusInternalServerError
-			}
-		} else {
-			success = http.StatusBadRequest
-		}
-	} else {
-		err = errors.New("must be logged in to create a server")
+	err = c.Bind(&formData)
+	for err == nil {
+		port := server.NextAvailablePort()
+		s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
+		pUUID, err = auth.PlayerUUIDLookup(playerName)
+		err = s.AddOp(playerName, pUUID, true)
+		break
 	}
 
 	var data = gin.H{
 		"result": success,
 		"page":   formData.Page,
 	}
-	if err != nil {
+
+	if err == nil {
+		success = http.StatusOK
+		server.LoadServers()
+	} else {
 		data["error"] = err.Error()
+		s.Delete()
 	}
+
 	c.JSON(success, data)
 }
 
@@ -160,22 +138,13 @@ func Day(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
 	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			err = s.Day()
-			if err != nil {
-				err = fmt.Errorf("Unable to set time to day: %s", err.Error())
-				success = http.StatusInternalServerError
-			} else {
-				success = http.StatusOK
-			}
-		} else {
-			success = http.StatusNotFound
-		}
+	s := server.Servers[serverID]
+	err = s.Day()
+	if err != nil {
+		err = fmt.Errorf("Unable to set time to day: %s", err.Error())
+		success = http.StatusInternalServerError
 	} else {
-		err = errors.New("must be logged in")
+		success = http.StatusOK
 	}
 
 	var data = gin.H{
@@ -190,24 +159,17 @@ func Day(c *gin.Context) {
 func Delete(c *gin.Context) {
 	var success = http.StatusUnauthorized
 	var err error
-	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			if s.Owner == playerName { // only the owner can delete a server
-				err = s.Delete()
-				if err == nil {
-					success = http.StatusOK
-					server.LoadServers()
-				} else {
-					success = http.StatusInternalServerError
-				}
-			}
+	serverID := c.Param("serverid")
+	s := server.Servers[serverID]
+	if s.Owner == playerName { // only the owner can delete a server
+		err = s.Delete()
+		if err == nil {
+			success = http.StatusOK
+			server.LoadServers()
+		} else {
+			success = http.StatusInternalServerError
 		}
-	} else {
-		err = errors.New("must be logged in to create a server")
-		success = http.StatusUnauthorized
 	}
 
 	var data = gin.H{
@@ -229,7 +191,7 @@ func Login(c *gin.Context) {
 
 	err := c.Bind(&formData)
 	if err == nil {
-		token, playerName, err := auth.Auth(formData.Username, formData.Password)
+		token, playerName, err := auth.Authenticate(formData.Username, formData.Password)
 		if err == nil {
 			c.SetCookie("token", token, 604800, "/", "", true, true) // 604800 = 1 week
 			c.SetCookie("player", playerName, 604800, "/", "", true, true)
@@ -241,7 +203,7 @@ func Login(c *gin.Context) {
 		}
 	} else {
 		data["result"] = http.StatusBadRequest
-		err = errors.New("login failed")
+		err = errors.New("bad form data received")
 	}
 
 	if err != nil {
@@ -251,23 +213,12 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	var success = http.StatusUnauthorized
-	var err error
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		c.SetCookie("token", "", 0, "/", "", true, true)
-		c.SetCookie("player", "", 0, "/", "", true, true)
-		success = http.StatusOK
-	} else {
-		err = errors.New("not logged in")
-	}
+	var success = http.StatusOK
+	c.SetCookie("token", "", 0, "/", "", true, true)
+	c.SetCookie("player", "", 0, "/", "", true, true)
 
 	var data = gin.H{
 		"result": success,
-	}
-	if err != nil {
-		data["error"] = err.Error()
 	}
 
 	c.JSON(success, data)
@@ -284,46 +235,32 @@ func Ping(c *gin.Context) {
 }
 
 func Releases(c *gin.Context) {
+	var success = http.StatusInternalServerError
 	err := vanilla.RefreshReleases()
-	if err != nil {
-		c.JSON(502, err)
-		return
+	if err == nil {
+		success = http.StatusOK
 	}
-	c.JSON(200, vanilla.Releases)
+
+	c.JSON(success, vanilla.Releases)
 }
 
 func Servers(c *gin.Context) {
 	var result = make(map[string]server.WebView)
-	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
-	if !auth.VerifyToken(playerName, token) {
-		// silent fail with empty response
-		c.JSON(http.StatusOK, result)
-		return
-	}
-
 	result = server.OpServersWebView(playerName)
-	c.JSON(200, result)
+	c.JSON(http.StatusOK, result)
 }
 
 func Start(c *gin.Context) {
-	var success = http.StatusUnauthorized
+	var success = http.StatusInternalServerError
 	var err error
 	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			err = s.Start()
-			if err != nil {
-				fmt.Printf("WARNING server start unable to fork: %s\n", err.Error())
-			}
-			success = http.StatusOK
-		} else {
-			success = http.StatusNotFound
-		}
+	s := server.Servers[serverID]
+	err = s.Start()
+	if err != nil {
+		fmt.Printf("WARNING server start unable to fork: %s\n", err.Error())
 	} else {
-		err = errors.New("must be logged in to create a server")
+		success = http.StatusOK
 	}
 
 	var data = gin.H{
@@ -336,24 +273,14 @@ func Start(c *gin.Context) {
 }
 
 func Stop(c *gin.Context) {
-	var success = http.StatusUnauthorized
+	var success = http.StatusInternalServerError
 	var err error
 	serverID := c.Param("serverid")
-	token, _ := c.Cookie("token")
-	playerName, _ := c.Cookie("player")
-	if auth.VerifyToken(playerName, token) {
-		if s, ok := server.Servers[serverID]; ok {
-			err = s.Stop(2)
-			if err == nil {
-				success = http.StatusOK
-			} else {
-				success = http.StatusInternalServerError
-			}
-		} else {
-			success = http.StatusNotFound
-		}
-	} else {
-		err = errors.New("must be logged in to create a server")
+
+	s := server.Servers[serverID]
+	err = s.Stop(2)
+	if err == nil {
+		success = http.StatusOK
 	}
 
 	var data = gin.H{

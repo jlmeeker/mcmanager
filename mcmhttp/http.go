@@ -44,18 +44,28 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 
 	v1 := router.Group("/v1")
 	{
-		v1.POST("/addop/:serverid", apiv1.AddOp)
-		v1.POST("/backup/:serverid", apiv1.Backup)
-		v1.POST("/clear/:serverid", apiv1.ClearWeather)
-		v1.POST("/create", apiv1.Create)
-		v1.POST("/day/:serverid", apiv1.Day)
-		v1.POST("/delete/:serverid", apiv1.Delete)
+		// these routes available without authorization
 		v1.POST("/login", apiv1.Login)
-		v1.POST("/logout", apiv1.Logout)
 		v1.GET("/news", apiv1.News)
 		v1.GET("/ping", apiv1.Ping)
 		v1.GET("/releases", apiv1.Releases)
+
+		// all routes below this line REQUIRE authentication
+		v1.Use(apiv1.AuthenticateMiddleware())
+		v1.POST("/create", apiv1.CreateHandler)
+		v1.POST("/logout", apiv1.Logout)
 		v1.GET("/servers", apiv1.Servers)
+
+		// all routes below this line REQUIRE at least Op access to the requested server
+		v1.Use(server.AuthorizeOpMiddleware())
+		v1.POST("/addop/:serverid", apiv1.AddOp)
+		v1.POST("/backup/:serverid", apiv1.Backup)
+		v1.POST("/clear/:serverid", apiv1.ClearWeather)
+		v1.POST("/day/:serverid", apiv1.Day)
+
+		// all routes below this line REQUIRE owner access to the requested server
+		v1.Use(server.AuthorizeOwnerMiddleware())
+		v1.POST("/delete/:serverid", apiv1.Delete)
 		v1.POST("/start/:serverid", apiv1.Start)
 		v1.POST("/stop/:serverid", apiv1.Stop)
 	}

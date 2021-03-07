@@ -17,8 +17,8 @@ import (
 // TokenCache is an in-memory cache of user tokens
 var TokenCache = make(map[string]string)
 
-// Auth will authenticate a login request
-func Auth(username, password string) (string, string, error) {
+// Authenticate will authenticate a login request
+func Authenticate(username, password string) (string, string, error) {
 	//Auth with Minecraft version 1
 	yggdrasilClient := &yggdrasil.Client{}
 	authResponse, err := yggdrasilClient.Authenticate(username, password, "Minecraft", 1)
@@ -128,3 +128,10 @@ func PlayerUUIDLookup(player string) (string, error) {
 }
 
 //{"error":"BadRequestException","errorMessage":" is invalid"}
+
+/*
+	uuid, err := auth.PlayerUUIDLookup(name)
+	if err != nil {
+		return err
+	}
+*/
