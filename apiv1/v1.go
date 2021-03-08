@@ -66,7 +66,7 @@ func Backup(c *gin.Context) {
 	var err error
 	serverID := c.Param("serverid")
 	s := server.Servers[serverID]
-	err = s.Backup()
+	err = s.Backup("initiated via web")
 	if err != nil {
 		err = fmt.Errorf("Backup failed: %s", err.Error())
 	} else {
@@ -111,15 +111,12 @@ func CreateHandler(c *gin.Context) {
 	var formData forms.NewServer
 	var err error
 	var s server.Server
-	var pUUID string
 
 	playerName, _ := c.Cookie("player")
 	err = c.Bind(&formData)
 	for err == nil {
 		port := server.NextAvailablePort()
 		s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
-		pUUID, err = auth.PlayerUUIDLookup(playerName)
-		err = s.AddOpOffline(playerName, pUUID, true)
 		break
 	}
 
@@ -133,7 +130,8 @@ func CreateHandler(c *gin.Context) {
 		server.LoadServers()
 	} else {
 		data["error"] = err.Error()
-		s.Delete()
+		//s.Delete()
+		fmt.Printf("error on %s create: %s\n", s.Name, err.Error())
 	}
 
 	c.JSON(success, data)
@@ -258,6 +256,28 @@ func Releases(c *gin.Context) {
 	}
 
 	c.JSON(success, vanilla.Releases)
+}
+
+// Save tells a server to save data to disk
+func Save(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var err error
+	serverID := c.Param("serverid")
+	s := server.Servers[serverID]
+	err = s.Save()
+	if err != nil {
+		err = fmt.Errorf("Save failed: %s", err.Error())
+	} else {
+		success = http.StatusOK
+	}
+
+	var data = gin.H{
+		"result": success,
+	}
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
 }
 
 // Servers returns a list of servers the logged in player is either owner of or op on

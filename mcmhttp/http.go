@@ -62,6 +62,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 		v1.POST("/backup/:serverid", apiv1.Backup)
 		v1.POST("/clear/:serverid", apiv1.ClearWeather)
 		v1.POST("/day/:serverid", apiv1.Day)
+		v1.POST("/save/:serverid", apiv1.Backup)
 		v1.POST("/whitelist/add/:serverid", apiv1.WhitelistAdd)
 
 		// all routes below this line REQUIRE owner access to the requested server

@@ -8,8 +8,8 @@ function addOp(serverID) {
   }
 }
 
-function backupServer(id) {
-  serverAction(id, "backup");
+function saveServer(id) {
+  serverAction(id, "save");
 }
 
 function deleteServer(name, id) {
@@ -247,8 +247,8 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header bg-light shadow">`+item.name+`
           <div class="mb-0" style="float: right;">
-            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
-              <i class="bi-filter-square text-success"></i>
+            <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
+              <i class="bi-save2 text-success"></i>
             </a>
             <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
               <i class="bi-caret-right-square text-success"></i>
@@ -299,7 +299,7 @@ function newServerCard(item) {
     document.getElementById("addOpIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("backupIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("saveIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("stopIndicator_"+item.uuid).classList.remove("hidden");
   } else {
     document.getElementById("startIndicator_"+item.uuid).classList.remove("hidden");

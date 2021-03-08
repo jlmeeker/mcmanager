@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
 	"github.com/jlmeeker/mcmanager/rcon"
 	"github.com/jlmeeker/mcmanager/releases"
@@ -83,6 +84,7 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 	var err error
 	var props Properties
 	var suuid uuid.UUID
+	var pUUID string
 	for err == nil {
 		suuid, err = uuid.NewRandom()
 		s.UUID = suuid.String()
@@ -128,10 +130,13 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 
 		err = acceptEULA(s.ServerDir())
 		err = storage.DeployJar(s.Flavor, s.Release, s.UUID)
+		err = s.SaveManagedJSON()
+		pUUID, err = auth.PlayerUUIDLookup(owner)
+		err = s.AddOpOffline(owner, pUUID, true)
+		err = storage.SetupServerBackup(s.UUID)
 		break
 	}
 
-	err = s.Save()
 	if err == nil && formData.StartNow {
 		err = s.Start()
 	}
@@ -224,12 +229,8 @@ func (s *Server) AddOpOnline(playerName string) error {
 }
 
 // Backup will instruct the server to perform a save-all operation
-func (s *Server) Backup() error {
-	_, err := s.rcon("save-all")
-	if err != nil {
-		return err
-	}
-	return nil
+func (s *Server) Backup(message string) error {
+	return storage.GitCommit(s.UUID, "message")
 }
 
 // Day will instruct the server to set the time to day
@@ -339,8 +340,17 @@ func (s *Server) rcon(msg string) (string, error) {
 	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
 }
 
-// Save writes the server config to disk
+// Save will instruct the server to perform a save-all operation
 func (s *Server) Save() error {
+	_, err := s.rcon("save-all")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SaveManagedJSON writes the server config to disk
+func (s *Server) SaveManagedJSON() error {
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err

@@ -75,15 +75,15 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	// Catch interrupt and ask all servers to backup (just in case they get culled when we exit)
+	// Catch interrupt and ask all servers to save (just in case they get culled when we exit)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)
 	go func() {
 		for sig := range c {
-			fmt.Printf("Received %s... backing up all running servers\n", sig.String())
+			fmt.Printf("Received %s... instructing running instances to save\n", sig.String())
 			for _, s := range server.Servers {
 				if s.IsRunning() {
-					err := s.Backup()
+					err := s.Save()
 					if err != nil {
 						fmt.Printf(err.Error())
 					}
