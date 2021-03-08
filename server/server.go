@@ -127,6 +127,11 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 		err = s.SaveManagedJSON()
 		pUUID, err = auth.PlayerUUIDLookup(owner)
 		err = s.AddOpOffline(owner, pUUID, true)
+
+		if s.WhitelistEnabled() {
+			err = s.WhitelistAddOffline(owner, pUUID, true)
+		}
+
 		err = storage.SetupServerBackup(s.UUID)
 		break
 	}
@@ -211,20 +216,28 @@ func (s *Server) AddOpOffline(name, uuid string, force bool) error {
 }
 
 // AddOpOnline will add a user as an op using rcon
-func (s *Server) AddOpOnline(playerName string) error {
-	if playerName == "" {
+func (s *Server) AddOpOnline(opName string) error {
+	if opName == "" {
 		return fmt.Errorf("cannot op that user")
 	}
-	_, err := s.rcon(fmt.Sprintf("op %s", playerName))
-	if err != nil {
-		return err
+
+	var err error
+	for err == nil {
+		_, err = s.rcon(fmt.Sprintf("op %s", opName))
+
+		if s.WhitelistEnabled() {
+			err = s.WhitelistAddOnline(opName)
+		}
+
+		break
 	}
-	return nil
+
+	return err
 }
 
 // Backup will instruct the server to perform a save-all operation
 func (s *Server) Backup(message string) error {
-	return storage.GitCommit(s.UUID, "message")
+	return storage.GitCommit(s.UUID, message)
 }
 
 // Day will instruct the server to set the time to day
@@ -305,6 +318,21 @@ func (s *Server) LoadOps() ([]Op, error) {
 	return o, nil
 }
 
+// LoadWhitelist will read in the contents of the server's ops.json file
+func (s *Server) LoadWhitelist() ([]WLPlayer, error) {
+	var wlps []WLPlayer
+	b, err := os.ReadFile(filepath.Join(s.ServerDir(), "whitelist.json"))
+	if err != nil {
+		return wlps, err
+	}
+
+	err = json.Unmarshal(b, &wlps)
+	if err != nil {
+		return wlps, err
+	}
+	return wlps, nil
+}
+
 // Ops will return a list of ops contained in the server's ops.json file (a zero-error equivalent of LoadOps)
 func (s *Server) Ops() []Op {
 	ops, err := s.LoadOps()
@@ -331,7 +359,7 @@ func (s *Server) Players() string {
 
 // Rcon sends a message to the server's rcon
 func (s *Server) rcon(msg string) (string, error) {
-	fmt.Printf("server send rcon: %s\n", msg)
+	//fmt.Printf("server send rcon: %s\n", msg)
 	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
 }
 
@@ -362,6 +390,16 @@ func (s *Server) SaveOps(ops []Op) error {
 	}
 
 	return os.WriteFile(filepath.Join(s.ServerDir(), "ops.json"), b, 0640)
+}
+
+// SaveWhitelist will save the provided ops to the server's ops.json (overwrites the contents)
+func (s *Server) SaveWhitelist(wlps []WLPlayer) error {
+	b, err := json.MarshalIndent(wlps, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filepath.Join(s.ServerDir(), "whitelist.json"), b, 0640)
 }
 
 // ServerDir builds the path to the server storage dir
@@ -432,13 +470,37 @@ func (s *Server) Whitelist() string {
 	return parts[1]
 }
 
-// WhitelistAdd will instruct the server to whitelist a player
-func (s *Server) WhitelistAdd(playerName string) error {
+// WhitelistAddOnline will instruct the server to whitelist a player
+func (s *Server) WhitelistAddOnline(playerName string) error {
 	_, err := s.rcon(fmt.Sprintf("whitelist add %s", playerName))
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// WhitelistAddOffline will instruct the server to whitelist a player
+func (s *Server) WhitelistAddOffline(playerName, uuid string, force bool) error {
+	wlps, err := s.LoadWhitelist()
+	if err != nil && force == false {
+		return err
+	}
+
+	var p = WLPlayer{
+		UUID: uuid,
+		Name: playerName,
+	}
+
+	wlps = append(wlps, p)
+	return s.SaveWhitelist(wlps)
+}
+
+// WhitelistEnabled will instruct the server to whitelist a player
+func (s *Server) WhitelistEnabled() bool {
+	if s.Props.get("white-list") == "true" {
+		return true
+	}
+	return false
 }
 
 // WebView web view of a server instance
@@ -455,7 +517,7 @@ type WebView struct {
 	UUID             string `json:"uuid"`
 	Owner            string `json:"owner"`
 	AmOwner          bool   `json:"amowner"`
-	WhiteListEnabled string `json:"whitelistenabled"`
+	WhiteListEnabled bool   `json:"whitelistenabled"`
 	WhiteList        string `json:"whitelist"`
 }
 
@@ -489,7 +551,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			UUID:             s.UUID,
 			Owner:            s.Owner,
 			AmOwner:          amowner,
-			WhiteListEnabled: s.Props["enforce-whitelist"],
+			WhiteListEnabled: s.WhitelistEnabled(),
 			WhiteList:        s.Whitelist(),
 		}
 	}

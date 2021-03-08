@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jlmeeker/mcmanager/auth"
@@ -34,24 +35,63 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 func AddOp(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var formData forms.AddOp
+	var err error
+
+	serverID := c.Param("serverid")
+	for err == nil {
+		err = c.Bind(&formData)
+		s := server.Servers[serverID]
+
+		if strings.TrimSpace(formData.OpName) == "" {
+			err = fmt.Errorf("invalid player name specified")
+		}
+
+		err = s.Backup(fmt.Sprintf("before op %s", formData.OpName))
+		err = s.AddOpOnline(formData.OpName)
+
+		if s.WhitelistEnabled() {
+			s.WhitelistAddOnline(formData.OpName)
+		}
+
+		err = s.Backup(fmt.Sprintf("after op %s", formData.OpName))
+		success = http.StatusOK
+		break
+	}
+
 	var data = gin.H{
 		"result": success,
 	}
 
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
+}
+
+// AddWhitelist adds a player to a server's whitelist
+func AddWhitelist(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var formData forms.WhitelistAdd
+	var err error
+
 	serverID := c.Param("serverid")
-	err := c.Bind(&formData)
-	if err == nil {
-		s := server.Servers[serverID]
-		err = s.AddOpOnline(formData.OpName)
-		if err != nil {
-			err = fmt.Errorf("Unable to add op: %s", err.Error())
-			success = http.StatusInternalServerError
-		} else {
-			success = http.StatusOK
+	for err == nil {
+		err = c.Bind(&formData)
+
+		if strings.TrimSpace(formData.PlayerName) == "" {
+			err = fmt.Errorf("invalid player name specified")
 		}
-	} else {
-		err = fmt.Errorf("invalid form data received")
-		success = http.StatusBadRequest
+
+		s := server.Servers[serverID]
+		err = s.Backup(fmt.Sprintf("before whitelist %s", formData.PlayerName))
+		err = s.WhitelistAddOnline(formData.PlayerName)
+		err = s.Backup(fmt.Sprintf("after whitelist %s", formData.PlayerName))
+		success = http.StatusOK
+		break
+	}
+
+	var data = gin.H{
+		"result": success,
 	}
 
 	if err != nil {
@@ -203,6 +243,7 @@ func Login(c *gin.Context) {
 			if c.Request.Proto == "https" {
 				secure = true
 			}
+			c.SetSameSite(http.SameSiteStrictMode)
 			c.SetCookie("token", token, 604800, "/", "", secure, true) // 604800 = 1 week
 			c.SetCookie("player", playerName, 604800, "/", "", secure, true)
 			data["success"] = http.StatusOK
@@ -292,13 +333,14 @@ func Servers(c *gin.Context) {
 func Start(c *gin.Context) {
 	var success = http.StatusInternalServerError
 	var err error
+
 	serverID := c.Param("serverid")
-	s := server.Servers[serverID]
-	err = s.Start()
-	if err != nil {
-		fmt.Printf("WARNING server start unable to fork: %s\n", err.Error())
-	} else {
+	for err == nil {
+		s := server.Servers[serverID]
+		err = s.Backup("before start")
+		err = s.Start()
 		success = http.StatusOK
+		break
 	}
 
 	var data = gin.H{
@@ -324,36 +366,6 @@ func Stop(c *gin.Context) {
 	var data = gin.H{
 		"result": success,
 	}
-	if err != nil {
-		data["error"] = err.Error()
-	}
-	c.JSON(success, data)
-}
-
-// WhitelistAdd adds a player to a server's whitelist
-func WhitelistAdd(c *gin.Context) {
-	var success = http.StatusInternalServerError
-	var formData forms.WhitelistAdd
-	var data = gin.H{
-		"result": success,
-	}
-
-	serverID := c.Param("serverid")
-	err := c.Bind(&formData)
-	if err == nil {
-		s := server.Servers[serverID]
-		err = s.WhitelistAdd(formData.PlayerName)
-		if err != nil {
-			err = fmt.Errorf("Unable to whitelist player: %s", err.Error())
-			success = http.StatusInternalServerError
-		} else {
-			success = http.StatusOK
-		}
-	} else {
-		err = fmt.Errorf("invalid form data received")
-		success = http.StatusBadRequest
-	}
-
 	if err != nil {
 		data["error"] = err.Error()
 	}

@@ -1,12 +1,17 @@
 // Server Actions
 function addOp(serverID) {
   var opname = prompt("Player name of the new Op:");
-  if (opname != "") {
+  if (opname != "" && opname != null) {
     var data = new FormData();
     data.append("opname", opname);
     serverAction(serverID, "op/add", data);
   }
 }
+
+function backupServer(id) {
+  serverAction(id, "backup");
+}
+
 
 function saveServer(id) {
   serverAction(id, "save");
@@ -247,6 +252,9 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header bg-light shadow">`+item.name+`
           <div class="mb-0" style="float: right;">
+            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+              <i class="bi-filter-square text-primary"></i>
+            </a>
             <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
               <i class="bi-save2 text-success"></i>
             </a>
@@ -264,7 +272,7 @@ function newServerCard(item) {
         <h4 class="card-header">
             <div class="mb-0">
               <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
-                <i class="bi-person-plus text-info"></i>
+                <i class="bi-person-plus text-success"></i>
               </a>
               <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
                 <i class="bi-person-lines-fill text-info"></i>
@@ -282,7 +290,7 @@ function newServerCard(item) {
             <p class="card-text">
               <strong>Flavor:</strong> `+item.flavor+`<br>
               <strong>Release:</strong> `+item.release+`<br>
-              <strong>Whitelist:</strong> `+item.whitelistenabled+`<br>
+              <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
               <strong>Port:</strong> `+item.port+`<br>
               <strong>Autostart:</strong> `+item.autostart+`<br>
               <strong>Ops:</strong> `+item.ops+`<br>
@@ -295,12 +303,16 @@ function newServerCard(item) {
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {
-    document.getElementById("whitelistPlayerIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("addOpIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("backupIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("saveIndicator_"+item.uuid).classList.remove("hidden");
     document.getElementById("stopIndicator_"+item.uuid).classList.remove("hidden");
+
+    if (item.whitelistenabled === true) {
+      document.getElementById("whitelistPlayerIndicator_"+item.uuid).classList.remove("hidden");
+    }
   } else {
     document.getElementById("startIndicator_"+item.uuid).classList.remove("hidden");
   }

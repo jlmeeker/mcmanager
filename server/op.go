@@ -7,3 +7,9 @@ type Op struct {
 	Level             int8   `json:"level"`
 	BypassPlayerLimit bool   `json:"bypassesPlayerLimit"`
 }
+
+// WLPlayer is the structure of a payer within the whitelist.json file
+type WLPlayer struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+}

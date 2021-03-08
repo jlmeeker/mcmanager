@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 )
 
 // GITCONFIG is the default contents of the .git/gitconfig file
@@ -54,7 +55,7 @@ func gitInit(serverID string) error {
 		return fmt.Errorf("git not available")
 	}
 
-	var cmd = exec.Command("git", "init", ">", "gitinit.log")
+	var cmd = exec.Command("git", "init")
 	cmd.Dir = filepath.Join(SERVERDIR, serverID)
 	return cmd.Run()
 }
@@ -92,7 +93,15 @@ func GitCommit(serverID, message string) error {
 	}
 
 	if err != nil {
-		fmt.Printf("out: \n%s\n", out)
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+				if status.ExitStatus() == 1 {
+					err = nil
+				} else {
+					fmt.Printf("GitCommit error output: \n%s\n", out)
+				}
+			}
+		}
 	}
 
 	return err
