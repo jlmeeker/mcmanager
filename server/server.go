@@ -161,7 +161,7 @@ func LoadServer(serverDir string) (Server, error) {
 	}
 
 	// Save here to get new properties written to managed.json
-	return s, s.Save()
+	return s, s.SaveManagedJSON()
 }
 
 // LoadServers loads servers from disk and caches results
