@@ -331,7 +331,7 @@ func (s *Server) Players() string {
 
 // Rcon sends a message to the server's rcon
 func (s *Server) rcon(msg string) (string, error) {
-	fmt.Printf("server send rcon: %s", msg)
+	fmt.Printf("server send rcon: %s\n", msg)
 	return rcon.Send(msg, s.Props["rcon.port"], s.Props["rcon.password"])
 }
 
