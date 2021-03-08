@@ -99,31 +99,25 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 
 		// attempt download first (no-op if it exists)
 		if !storage.JarExists(s.Flavor, s.Release) {
-			var err error
 			switch s.Flavor {
 			case "vanilla":
 				err = vanilla.DownloadReleases([]string{s.Release})
 			case "spigot":
 				err = spigot.Build(s.Release)
 			}
-
-			if err != nil {
-				return s, err
-			}
 		}
 
 		err = storage.MakeServerDir(s.UUID)
-		if err != nil {
-			return s, err
-		}
-
 		err = writeDefaultPropertiesFile(s.ServerDir())
 		props, err = readServerProperties(s.ServerDir())
 		props.set("enable-rcon", "true")
 		props.set("rcon.password", "admin")
 		props.set("motd", formData.MOTD)
 		props.setPort(port)
-		props.enableWhiteList()
+
+		if whitelist {
+			props.enableWhiteList()
+		}
 
 		err = props.writeToFile(s.ServerDir())
 		s.Props = props
