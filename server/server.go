@@ -133,6 +133,7 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 		}
 
 		err = storage.SetupServerBackup(s.UUID)
+		err = storage.AuditWrite(s.Owner, "create", fmt.Sprintf("created server %s", s.UUID))
 		break
 	}
 
@@ -198,7 +199,7 @@ func LoadServers() error {
 // AddOpOffline will add a user as an op
 // the force option is to ignore errors from loading the ops.json file
 // like happens when one doesn't exist.
-func (s *Server) AddOpOffline(name, uuid string, force bool) error {
+func (s *Server) AddOpOffline(opName, uuid string, force bool) error {
 	ops, err := s.LoadOps()
 	if err != nil && force == false {
 		return err
@@ -206,12 +207,13 @@ func (s *Server) AddOpOffline(name, uuid string, force bool) error {
 
 	var o = Op{
 		UUID:              uuid,
-		Name:              name,
+		Name:              opName,
 		Level:             4,
 		BypassPlayerLimit: true,
 	}
 
 	ops = append(ops, o)
+	storage.AuditWrite("server_AddOpOffline", "create", fmt.Sprintf("opped %s on %s", opName, s.UUID))
 	return s.SaveOps(ops)
 }
 
@@ -224,6 +226,7 @@ func (s *Server) AddOpOnline(opName string) error {
 	var err error
 	for err == nil {
 		_, err = s.rcon(fmt.Sprintf("op %s", opName))
+		err = storage.AuditWrite("server_AddOpOnline", "op:add", fmt.Sprintf("opped %s on %s", opName, s.UUID))
 
 		if s.WhitelistEnabled() {
 			err = s.WhitelistAddOnline(opName)
@@ -476,7 +479,8 @@ func (s *Server) WhitelistAddOnline(playerName string) error {
 	if err != nil {
 		return err
 	}
-	return nil
+	err = storage.AuditWrite("server_WhitelistAddOnline", "whitelist:add", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
+	return err
 }
 
 // WhitelistAddOffline will instruct the server to whitelist a player
@@ -492,6 +496,7 @@ func (s *Server) WhitelistAddOffline(playerName, uuid string, force bool) error 
 	}
 
 	wlps = append(wlps, p)
+	err = storage.AuditWrite("server_WhitelistAddOffline", "create", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
 	return s.SaveWhitelist(wlps)
 }
 

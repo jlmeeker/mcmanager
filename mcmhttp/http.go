@@ -58,11 +58,12 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 
 		// all routes below this line REQUIRE at least Op access to the requested server
 		v1.Use(server.AuthorizeOpMiddleware())
-		v1.POST("/op/add/:serverid", apiv1.AddOp)
+		v1.Use(apiv1.AuditLogMiddleware())
 		v1.POST("/backup/:serverid", apiv1.Backup)
-		v1.POST("/clear/:serverid", apiv1.ClearWeather)
-		v1.POST("/day/:serverid", apiv1.Day)
+		v1.POST("/op/add/:serverid", apiv1.AddOp)
+		v1.POST("/time/day/:serverid", apiv1.Day)
 		v1.POST("/save/:serverid", apiv1.Backup)
+		v1.POST("/weather/clear/:serverid", apiv1.ClearWeather)
 		v1.POST("/whitelist/add/:serverid", apiv1.AddWhitelist)
 
 		// all routes below this line REQUIRE owner access to the requested server

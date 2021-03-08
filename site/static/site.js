@@ -26,7 +26,7 @@ function deleteServer(name, id) {
 }
 
 function setDaytime(id) {
-  serverAction(id, "day");
+  serverAction(id, "time/day");
 }
 
 function startServer(id) {
@@ -38,7 +38,7 @@ function stopServer(id) {
 }
 
 function weatherClear(id) {
-  serverAction(id, "clear");
+  serverAction(id, "weather/clear");
 }
 
 function whitelistAdd(serverID) {

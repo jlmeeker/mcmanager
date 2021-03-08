@@ -3,6 +3,7 @@ package apiv1
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -10,23 +11,50 @@ import (
 	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
 	"github.com/jlmeeker/mcmanager/server"
+	"github.com/jlmeeker/mcmanager/storage"
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
+
+//AuditLogMiddleware middleware
+func AuditLogMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var action []string
+		var playerName string
+		var err error
+
+		serverID := c.Param("serverid")
+		for err == nil {
+			playerName, err = c.Cookie("player")
+			pathParts := strings.Split(c.Request.URL.Path, "/")
+			if len(pathParts) >= 2 {
+				action = pathParts[2 : len(pathParts)-1]
+			}
+			err = storage.AuditWrite(playerName, strings.Join(action, ":"), fmt.Sprintf("%s (%s)", serverID, server.Servers[serverID].Name))
+			break
+		}
+
+		if err == nil {
+			c.Next()
+			return
+		} else {
+			log.Printf("Error with audit log: %s\n", err.Error())
+		}
+
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
 
 //AuthenticateMiddleware middleware
 func AuthenticateMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, _ := c.Cookie("token")
 		playerName, _ := c.Cookie("player")
-		//fmt.Printf("authenticating %s\n", playerName)
 
 		ok := auth.VerifyToken(playerName, token)
 		if ok {
-			//fmt.Printf("success %s\n", playerName)
 			c.Next()
 			return
 		}
-		//fmt.Printf("failure %s\n", playerName)
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
