@@ -35,6 +35,10 @@ func gitAvailable() bool {
 
 // SetupServerBackup initializes a git repo inside an instance dir
 func SetupServerBackup(serverID string) error {
+	if serverID == "" {
+		return fmt.Errorf("cannot setup backups without a server ID")
+	}
+
 	var err error
 	for err == nil {
 		err = gitInit(serverID)
