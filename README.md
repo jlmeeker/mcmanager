@@ -59,7 +59,20 @@ $ mcmanager --storage <path/to/storagedir>
 **CAUTION**: MCmanager does NOT provide TLS support.  Since logins use existing Minecraft accounts, it is STRONGLY RECOMMENDED that you leave the --listen value as the default and run a proxy service (there are many, Caddy works well) that can provide TLS for you.  This isn't a huge concern if you run this solely inside a home network, but don't expose it to the internet before securing it.  You have been warned. (all mcmanger -> minecraft.net traffic IS over HTTPS, this notice is only about the communication from your web browser to mcmanager)
 
 ## Todo
-
+- [x] Authentication (minecraf.net credentials)
+- [x] Authorization
+  - owner:
+    - [x] delete
+    - [x] world re-gen
+  - op:
+    - [x] op add
+    - [x] whitelist add
+    - [x] weather
+    - [x] time
+    - [x] backup
+    - [x] save
+    - [x] start
+    - [x] stop
 - Configurable:
   - [ ] news sources (home page content)
   - [x] host name (commane-line flag)
