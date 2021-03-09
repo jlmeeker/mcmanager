@@ -115,6 +115,10 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 		s.Props.setPort(port)
 		s.Props.set("level-type", formData.WorldType)
 
+		if formData.Seed != "" {
+			s.Props.set("level-seed", formData.Seed)
+		}
+
 		if whitelist {
 			s.Props.enableWhiteList()
 		}
@@ -569,6 +573,7 @@ type WebView struct {
 	WhiteListEnabled bool   `json:"whitelistenabled"`
 	WhiteList        string `json:"whitelist"`
 	WorldType        string `json:"worldtype"`
+	Seed             string `json:"seed"`
 }
 
 // OpServersWebView is a web view of a list of servers
@@ -606,6 +611,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			WhiteListEnabled: s.WhitelistEnabled(),
 			WhiteList:        s.Whitelist(),
 			WorldType:        s.Props.get("level-type"),
+			Seed:             s.Props.get("level-seed"),
 		}
 	}
 

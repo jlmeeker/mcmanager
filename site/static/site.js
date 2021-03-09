@@ -303,6 +303,7 @@ function newServerCard(item) {
             <strong>Flavor:</strong> `+item.flavor+`<br>
             <strong>Release:</strong> `+item.release+`<br>
             <strong>World Type:</strong> `+item.worldtype+`<br>
+            <strong>Seed:</strong> `+item.seed+`<br>
             <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
             <strong>Port:</strong> `+item.port+`<br>
             <strong>Autostart:</strong> `+item.autostart+`<br>
