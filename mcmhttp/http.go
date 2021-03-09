@@ -68,6 +68,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS) {
 
 		// all routes below this line REQUIRE owner access to the requested server
 		v1.Use(server.AuthorizeOwnerMiddleware())
+		v1.POST("/regen/:serverid", apiv1.Regen)
 		v1.POST("/delete/:serverid", apiv1.Delete)
 		v1.POST("/start/:serverid", apiv1.Start)
 		v1.POST("/stop/:serverid", apiv1.Stop)

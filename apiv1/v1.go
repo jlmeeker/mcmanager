@@ -316,6 +316,28 @@ func Ping(c *gin.Context) {
 	})
 }
 
+// Regen runs a backup of a server
+func Regen(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var err error
+	serverID := c.Param("serverid")
+	s := server.Servers[serverID]
+	err = s.Regen()
+	if err != nil {
+		err = fmt.Errorf("Regen failed: %s", err.Error())
+	} else {
+		success = http.StatusOK
+	}
+
+	var data = gin.H{
+		"result": success,
+	}
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
+}
+
 // Releases returns a list of current, vanilla releases
 func Releases(c *gin.Context) {
 	var success = http.StatusInternalServerError

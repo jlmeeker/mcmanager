@@ -18,11 +18,19 @@ function saveServer(id) {
 }
 
 function deleteServer(name, id) {
-  var r = confirm("Delete "+name+"?");
+  var r = confirm("Delete "+name+"?\n\nTHIS CANNOT BE UNDONE !!!");
   if ( r === false) {
     return false;
   }
   serverAction(id, "delete");
+}
+
+function regenServer(name, id) {
+  var r = confirm("Regen "+name+"?\n\nTHIS WILL DELETE ALL WORLD AND IN-GAME PLAYER DATA !!!");
+  if ( r === false) {
+    return false;
+  }
+  serverAction(id, "regen");
 }
 
 function setDaytime(id) {
@@ -252,11 +260,8 @@ function newServerCard(item) {
     <div class="card shadow">
         <h4 class="card-header bg-light shadow">`+item.name+`
           <div class="mb-0" style="float: right;">
-            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
-              <i class="bi-filter-square text-primary"></i>
-            </a>
-            <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
-              <i class="bi-save2 text-success"></i>
+            <a id="regenIndicator_`+item.uuid+`" title="regen world (DESTRUCTIVE)" href="#" class="hidden" onClick="regenServer('`+item.name+`', '`+item.uuid+`')">
+              <i class="bi-card-image text-success"></i>
             </a>
             <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
               <i class="bi-caret-right-square text-success"></i>
@@ -264,7 +269,7 @@ function newServerCard(item) {
             <a id="stopIndicator_`+item.uuid+`" title="stop" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
               <i class="bi-exclamation-square text-warning"></i>
             </a>
-            <a id="deleteIndicator_`+item.uuid+`" title="delete" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
+            <a id="deleteIndicator_`+item.uuid+`" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
               <i class="bi-x-square text-danger"></i>
             </a>
           </div>
@@ -282,6 +287,12 @@ function newServerCard(item) {
               </a>
               <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
                 <i class="bi-sunrise text-warning"></i>
+              </a>
+              <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+              <i class="bi-filter-square text-primary"></i>
+              </a>
+              <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
+                <i class="bi-save2 text-success"></i>
               </a>
             </div>
         </h4>
@@ -318,5 +329,6 @@ function newServerCard(item) {
   }
   if (item.amowner === true) {
     document.getElementById("deleteIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("regenIndicator_"+item.uuid).classList.remove("hidden");
   }
 }

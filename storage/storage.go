@@ -192,3 +192,15 @@ func makeSubDir(parent, dirname string) error {
 	var path = filepath.Join(parent, dirname)
 	return os.MkdirAll(path, DEFAULTDIRPERM)
 }
+
+// EraseServerFile will remove a file from the instance dir
+func EraseServerFile(id, fname string) error {
+	var path = filepath.Join(SERVERDIR, id, fname)
+
+	_, err := os.Stat(path)
+	if err == nil {
+		return os.RemoveAll(path)
+	}
+
+	return err
+}

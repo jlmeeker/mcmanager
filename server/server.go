@@ -360,6 +360,32 @@ func (s *Server) Players() string {
 	return parts[1]
 }
 
+// Regen generates a new world
+func (s *Server) Regen() error {
+	var err error
+	var running = s.IsRunning()
+	for err == nil {
+		if running {
+			err = s.Stop(0)
+		}
+
+		err = storage.EraseServerFile(s.UUID, "logs")
+		err = storage.EraseServerFile(s.UUID, "world")
+		err = storage.EraseServerFile(s.UUID, "world_nether")
+		err = storage.EraseServerFile(s.UUID, "world_the_end")
+		err = storage.EraseServerFile(s.UUID, ".git")
+		err = storage.SetupServerBackup(s.UUID)
+		err = LoadServers()
+
+		if running {
+			err = s.Start()
+		}
+		break
+	}
+
+	return err
+}
+
 // Rcon sends a message to the server's rcon
 func (s *Server) rcon(msg string) (string, error) {
 	//fmt.Printf("server send rcon: %s\n", msg)
@@ -439,13 +465,19 @@ func (s *Server) Stop(delay int) error {
 		return nil
 	}
 
-	_, err := s.rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay))
-	if err != nil {
-		return err
+	var err error
+	for err == nil {
+		_, err = s.rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay))
+		time.Sleep(time.Duration(delay) * time.Second)
+		_, err = s.rcon("stop")
+		break
 	}
 
-	time.Sleep(time.Duration(delay) * time.Second)
-	_, err = s.rcon("stop")
+	if err == nil {
+		for s.IsRunning() {
+			time.Sleep(1 * time.Second)
+		}
+	}
 	return err
 }
 
