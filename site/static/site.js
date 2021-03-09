@@ -275,39 +275,40 @@ function newServerCard(item) {
           </div>
         </h4>
         <h4 class="card-header">
-            <div class="mb-0">
-              <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
-                <i class="bi-person-plus text-success"></i>
-              </a>
-              <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
-                <i class="bi-person-lines-fill text-info"></i>
-              </a>
-              <a id="weatherIndicator_`+item.uuid+`" title="clear weather" href="#" class="hidden" onClick="weatherClear('`+item.uuid+`')">
-                <i class="bi-cloud-sun text-primary"></i>
-              </a>
-              <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
-                <i class="bi-sunrise text-warning"></i>
-              </a>
-              <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
-              <i class="bi-filter-square text-primary"></i>
-              </a>
-              <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
-                <i class="bi-save2 text-success"></i>
-              </a>
-            </div>
+          <div class="mb-0">
+            <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
+              <i class="bi-person-plus text-success"></i>
+            </a>
+            <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
+              <i class="bi-person-lines-fill text-info"></i>
+            </a>
+            <a id="weatherIndicator_`+item.uuid+`" title="clear weather" href="#" class="hidden" onClick="weatherClear('`+item.uuid+`')">
+              <i class="bi-cloud-sun text-primary"></i>
+            </a>
+            <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
+              <i class="bi-sunrise text-warning"></i>
+            </a>
+            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+            <i class="bi-filter-square text-primary"></i>
+            </a>
+            <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
+              <i class="bi-save2 text-success"></i>
+            </a>
+          </div>
         </h4>
         <div class="card-body bg-light servercard">
-            <h6 class="card-title">`+item.motd+`</h6><br>
-            <p class="card-text">
-              <strong>Flavor:</strong> `+item.flavor+`<br>
-              <strong>Release:</strong> `+item.release+`<br>
-              <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
-              <strong>Port:</strong> `+item.port+`<br>
-              <strong>Autostart:</strong> `+item.autostart+`<br>
-              <strong>Ops:</strong> `+item.ops+`<br>
-              <strong>Whitelisted:</strong> `+item.whitelist+`<br>
-              <strong>Online:</strong> `+item.players+`<br>
-            </p>
+          <h6 class="card-title"><strong>Server Address:</strong> <br /><span class="text-success">`+hostname+":"+item.port+`</span></h6>
+          <p class="card-text">
+            <strong>MOTD:</strong> `+item.motd+`<br>
+            <strong>Flavor:</strong> `+item.flavor+`<br>
+            <strong>Release:</strong> `+item.release+`<br>
+            <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
+            <strong>Port:</strong> `+item.port+`<br>
+            <strong>Autostart:</strong> `+item.autostart+`<br>
+            <strong>Ops:</strong> `+item.ops+`<br>
+            <strong>Whitelisted:</strong> `+item.whitelist+`<br>
+            <strong>Online:</strong> `+item.players+`<br>
+          </p>
         </div>
       </div>
     </div>

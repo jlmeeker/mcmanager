@@ -24,6 +24,7 @@ const APPTITLE = "MC Manager"
 
 // Flags
 var (
+	flagHostName   = flag.String("hostname", "", "hostname to display for server instance addresses (empty will use OS hostname)")
 	flagStorageDir = flag.String("storage", "", "where to store server data")
 	flagListenAddr = flag.String("listen", "127.0.0.1:8080", "address to listen for http traffic")
 )
@@ -99,5 +100,5 @@ func main() {
 		}
 	}
 
-	mcmhttp.Listen(APPTITLE, *flagListenAddr, &webfiles)
+	mcmhttp.Listen(APPTITLE, *flagListenAddr, &webfiles, *flagHostName)
 }

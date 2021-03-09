@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -18,9 +19,22 @@ import (
 // APPTITLE is the name of app displayed in the web UI
 var APPTITLE string
 
+// HOSTNAME is the name of the host as displayed with the port in the web UI
+var HOSTNAME string
+
 // Listen starts the Gin web server
-func Listen(appTitle, addr string, webfiles *fs.FS) {
+func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) {
 	APPTITLE = appTitle
+	HOSTNAME = hostname
+
+	if HOSTNAME == "" {
+		hn, err := os.Hostname()
+		if err == nil {
+			HOSTNAME = hn
+		} else {
+			HOSTNAME = "localhost"
+		}
+	}
 
 	//webfiles := getFileSystem()
 	t, err := template.ParseFS(*webfiles, "*.html")
@@ -82,6 +96,7 @@ type PageData struct {
 	Authenticated bool
 	PlayerName    string
 	AppTitle      string
+	Hostname      string
 	Page          string
 	Releases      struct {
 		Flavors []string
@@ -104,6 +119,7 @@ func notFoundHandler(c *gin.Context) {
 func viewHandler(c *gin.Context) {
 	pd := PageData{
 		AppTitle: APPTITLE,
+		Hostname: HOSTNAME,
 	}
 	pd.Releases.Flavors = releases.FLAVORS
 	pd.Releases.Vanilla = vanilla.Releases
