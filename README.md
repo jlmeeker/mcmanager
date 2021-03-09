@@ -94,7 +94,7 @@ $ mcmanager --storage <path/to/storagedir>
   - [x] pvp choice (on create)
   - [x] world type (on create)
   - MOTD:
-    - [x] set
+    - [x] set (on create)
     - [ ] change
     - [x] view
   - ops:
