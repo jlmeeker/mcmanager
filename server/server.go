@@ -124,6 +124,10 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 			s.Props.enableWhiteList()
 		}
 
+		if formData.Hardcore {
+			s.Props.set("hardcore", "true")
+		}
+
 		if !formData.PVP {
 			s.Props.set("pvp", "false")
 		}
@@ -570,6 +574,7 @@ type WebView struct {
 	AutoStart        bool   `json:"autostart"`
 	Flavor           string `json:"flavor"`
 	GameMode         string `json:"gamemode"`
+	Hardcore         string `json:"hardcore"`
 	MOTD             string `json:"motd"`
 	Name             string `json:"name"`
 	Ops              string `json:"ops"`
@@ -609,6 +614,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			AutoStart:        s.AutoStart,
 			Flavor:           s.Flavor,
 			GameMode:         s.Props.get("gamemode"),
+			Hardcore:         s.Props.get("hardcore"),
 			MOTD:             s.Props.get("motd"),
 			Name:             s.Name,
 			Ops:              strings.Join(ops, ", "),

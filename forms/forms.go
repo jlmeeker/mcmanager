@@ -6,6 +6,7 @@ type NewServer struct {
 	AutoStart bool   `form:"autostart"`
 	Flavor    string `form:"flavor"`
 	GameMode  string `form:"gamemode"`
+	Hardcore  bool   `form:"hardcore"`
 	MOTD      string `form:"motd"`
 	Name      string `form:"name"`
 	Page      string `form:"page"`

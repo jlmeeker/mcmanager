@@ -306,6 +306,7 @@ function newServerCard(item) {
             <strong>World Type:</strong> `+item.worldtype+`<br>
             <strong>Seed:</strong> `+item.seed+`<br>
             <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
+            <strong>Hardcore:</strong> `+item.hardcore+`<br>
             <strong>PVP:</strong> `+item.pvp+`<br>
             <strong>Autostart:</strong> `+item.autostart+`<br>
             <strong>Ops:</strong> `+item.ops+`<br>
