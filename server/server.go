@@ -146,9 +146,11 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 	return s, err
 }
 
-// NewServerFromFile reads in the server.json file
-func NewServerFromFile(serverDir string) (Server, error) {
+// loadManagedJSON reads in the managed.json file
+// Does NOT read in server.properties (will likely be stale)
+func loadManagedJSON(serverDir string) (Server, error) {
 	var s Server
+	var err error
 	b, err := os.ReadFile(filepath.Join(serverDir, "managed.json"))
 	if err != nil {
 		return s, err
@@ -160,11 +162,12 @@ func NewServerFromFile(serverDir string) (Server, error) {
 
 // LoadServer creates a new instance of Server from an existing serverdir
 func LoadServer(serverDir string) (Server, error) {
-	s, err := NewServerFromFile(serverDir)
-	var props Properties
+	var s Server
+	var err error
+
 	for err == nil {
-		props, err = loadProperties(serverDir)
-		s.Props = props
+		s, err = loadManagedJSON(serverDir)
+		err = s.RefreshProperties()
 		break
 	}
 
@@ -558,22 +561,22 @@ func (s *Server) WhitelistEnabled() bool {
 
 // WebView web view of a server instance
 type WebView struct {
+	AmOwner          bool   `json:"amowner"`
+	AutoStart        bool   `json:"autostart"`
+	Flavor           string `json:"flavor"`
+	MOTD             string `json:"motd"`
 	Name             string `json:"name"`
+	Ops              string `json:"ops"`
+	Owner            string `json:"owner"`
+	Players          string `json:"players"`
+	Port             string `json:"port"`
 	Release          string `json:"release"`
 	Running          bool   `json:"running"`
-	Port             string `json:"port"`
-	AutoStart        bool   `json:"autostart"`
-	Players          string `json:"players"`
-	MOTD             string `json:"motd"`
-	Flavor           string `json:"flavor"`
-	Ops              string `json:"ops"`
-	UUID             string `json:"uuid"`
-	Owner            string `json:"owner"`
-	AmOwner          bool   `json:"amowner"`
-	WhiteListEnabled bool   `json:"whitelistenabled"`
-	WhiteList        string `json:"whitelist"`
-	WorldType        string `json:"worldtype"`
 	Seed             string `json:"seed"`
+	UUID             string `json:"uuid"`
+	WhiteList        string `json:"whitelist"`
+	WhiteListEnabled bool   `json:"whitelistenabled"`
+	WorldType        string `json:"worldtype"`
 }
 
 // OpServersWebView is a web view of a list of servers
@@ -594,24 +597,23 @@ func OpServersWebView(opName string) map[string]WebView {
 		}
 
 		s.RefreshProperties()
-
 		result[s.Name] = WebView{
+			AmOwner:          amowner,
+			AutoStart:        s.AutoStart,
+			Flavor:           s.Flavor,
+			MOTD:             s.Props.get("motd"),
 			Name:             s.Name,
+			Ops:              strings.Join(ops, ", "),
+			Owner:            s.Owner,
+			Players:          s.Players(),
+			Port:             s.Props.get("server-port"),
 			Release:          s.Release,
 			Running:          s.IsRunning(),
-			Port:             s.Props.get("server-port"),
-			AutoStart:        s.AutoStart,
-			Players:          s.Players(),
-			MOTD:             s.Props.get("motd"),
-			Flavor:           s.Flavor,
-			Ops:              strings.Join(ops, ", "),
+			Seed:             s.Props.get("level-seed"),
 			UUID:             s.UUID,
-			Owner:            s.Owner,
-			AmOwner:          amowner,
 			WhiteListEnabled: s.WhitelistEnabled(),
 			WhiteList:        s.Whitelist(),
 			WorldType:        s.Props.get("level-type"),
-			Seed:             s.Props.get("level-seed"),
 		}
 	}
 
