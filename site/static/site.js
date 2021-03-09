@@ -224,8 +224,15 @@ function fetchServers() {
       if (this.status == 200) {
         refreshServers(JSON.parse(this.responseText));
       } else {
-          document.getElementById('dangerToastBody').innerText = "Error getting servers";
-          toastList[1].show(); // dangerToast
+        document.getElementById("servers").innerHTML = `
+          <div class="text-center lead text-muted">
+              <p>Wow, looks pretty empty here...</p>
+              <br />
+              <p>Log in so you can create your first server!</p>
+          </div>
+          `;
+        document.getElementById('dangerToastBody').innerText = "Error getting servers";
+        toastList[1].show(); // dangerToast
       }
     }
   };

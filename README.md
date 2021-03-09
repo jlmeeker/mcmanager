@@ -130,6 +130,13 @@ $ mcmanager --storage <path/to/storagedir>
     
 And so much more.... (please submit a feature request issue)
 
+## Screenshots
+
+![Alt text](/screenshots/home-logged-out.png?raw=true "Home (logged out)")
+![Alt text](/screenshots/servers-logged-out.png?raw=true "Servers (logged out)")
+![Alt text](/screenshots/releases-logged-out.png?raw=true "Releases (logged out)")
+![Alt text](/screenshots/servers-logged-in.png?raw=true "Servers (logged in)")
+
 ## License
 
 MIT
