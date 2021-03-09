@@ -23,7 +23,7 @@ var APPTITLE string
 var HOSTNAME string
 
 // Listen starts the Gin web server
-func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) {
+func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) error {
 	APPTITLE = appTitle
 	HOSTNAME = hostname
 
@@ -88,7 +88,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) {
 		v1.POST("/stop/:serverid", apiv1.Stop)
 	}
 
-	router.Run(addr)
+	return router.Run(addr)
 }
 
 // PageData defines data that is passed to HTML templates

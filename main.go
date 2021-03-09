@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -100,5 +101,8 @@ func main() {
 		}
 	}
 
-	mcmhttp.Listen(APPTITLE, *flagListenAddr, &webfiles, *flagHostName)
+	err = mcmhttp.Listen(APPTITLE, *flagListenAddr, &webfiles, *flagHostName)
+	if err != nil {
+		log.Printf("HTTP thread exited with error: %s", err.Error())
+	}
 }
