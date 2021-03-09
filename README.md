@@ -60,7 +60,10 @@ $ mcmanager --storage <path/to/storagedir>
 
 ## Todo
 - [x] Authentication (minecraf.net credentials)
+  - [x] any authenticated user can create a server instance
+  - [ ] restrict who can be "owners", instead of everyone (if desired)
 - [x] Authorization
+  - [ ] super user: mcmanager account that can see and control all running instances regardless of ownership.
   - owner:
     - [x] delete
     - [x] world re-gen
