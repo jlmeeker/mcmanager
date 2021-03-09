@@ -13,7 +13,8 @@ import (
 // Properties is a hash of key:value pairs contained in the server.properties file
 type Properties map[string]string
 
-func readServerProperties(serverdir string) (Properties, error) {
+// loadProperties reads in the contents of a server.properties file
+func loadProperties(serverdir string) (Properties, error) {
 	var c = make(Properties)
 
 	fileBytes, err := os.ReadFile(filepath.Join(serverdir, "server.properties"))

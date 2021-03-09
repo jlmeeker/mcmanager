@@ -82,7 +82,6 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 	}
 
 	var err error
-	var props Properties
 	var suuid uuid.UUID
 	var pUUID string
 	for err == nil {
@@ -109,19 +108,18 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 
 		err = storage.MakeServerDir(s.UUID)
 		err = writeDefaultPropertiesFile(s.ServerDir())
-		props, err = readServerProperties(s.ServerDir())
-		props.set("enable-rcon", "true")
-		props.set("rcon.password", "admin")
-		props.set("motd", formData.MOTD)
-		props.setPort(port)
+		err = s.RefreshProperties()
+		s.Props.set("enable-rcon", "true")
+		s.Props.set("rcon.password", "admin")
+		s.Props.set("motd", formData.MOTD)
+		s.Props.setPort(port)
+		s.Props.set("level-type", formData.WorldType)
 
 		if whitelist {
-			props.enableWhiteList()
+			s.Props.enableWhiteList()
 		}
 
-		err = props.writeToFile(s.ServerDir())
-		s.Props = props
-
+		err = s.SaveProps()
 		err = acceptEULA(s.ServerDir())
 		err = storage.DeployJar(s.Flavor, s.Release, s.UUID)
 		err = s.SaveManagedJSON()
@@ -161,7 +159,7 @@ func LoadServer(serverDir string) (Server, error) {
 	s, err := NewServerFromFile(serverDir)
 	var props Properties
 	for err == nil {
-		props, err = readServerProperties(serverDir)
+		props, err = loadProperties(serverDir)
 		s.Props = props
 		break
 	}
@@ -360,6 +358,15 @@ func (s *Server) Players() string {
 	return parts[1]
 }
 
+// RefreshProperties reads in the server.properties values
+func (s *Server) RefreshProperties() error {
+	p, err := loadProperties(s.ServerDir())
+	if err == nil {
+		s.Props = p
+	}
+	return err
+}
+
 // Regen generates a new world
 func (s *Server) Regen() error {
 	var err error
@@ -419,6 +426,11 @@ func (s *Server) SaveOps(ops []Op) error {
 	}
 
 	return os.WriteFile(filepath.Join(s.ServerDir(), "ops.json"), b, 0640)
+}
+
+// SaveProps will save the properties into server.properties
+func (s *Server) SaveProps() error {
+	return s.Props.writeToFile(s.ServerDir())
 }
 
 // SaveWhitelist will save the provided ops to the server's ops.json (overwrites the contents)
@@ -556,6 +568,7 @@ type WebView struct {
 	AmOwner          bool   `json:"amowner"`
 	WhiteListEnabled bool   `json:"whitelistenabled"`
 	WhiteList        string `json:"whitelist"`
+	WorldType        string `json:"worldtype"`
 }
 
 // OpServersWebView is a web view of a list of servers
@@ -575,14 +588,16 @@ func OpServersWebView(opName string) map[string]WebView {
 			amowner = true
 		}
 
+		s.RefreshProperties()
+
 		result[s.Name] = WebView{
 			Name:             s.Name,
 			Release:          s.Release,
 			Running:          s.IsRunning(),
-			Port:             s.Props["server-port"],
+			Port:             s.Props.get("server-port"),
 			AutoStart:        s.AutoStart,
 			Players:          s.Players(),
-			MOTD:             s.Props["motd"],
+			MOTD:             s.Props.get("motd"),
 			Flavor:           s.Flavor,
 			Ops:              strings.Join(ops, ", "),
 			UUID:             s.UUID,
@@ -590,6 +605,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			AmOwner:          amowner,
 			WhiteListEnabled: s.WhitelistEnabled(),
 			WhiteList:        s.Whitelist(),
+			WorldType:        s.Props.get("level-type"),
 		}
 	}
 

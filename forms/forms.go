@@ -10,6 +10,7 @@ type NewServer struct {
 	Page      string `form:"page"`
 	StartNow  bool   `form:"startnow"`
 	Whitelist bool   `form:"whitelist"`
+	WorldType string `form:"worldtype"`
 }
 
 // Login is the structure of the data expected from the login web form
