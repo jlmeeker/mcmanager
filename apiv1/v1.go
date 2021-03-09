@@ -184,7 +184,7 @@ func CreateHandler(c *gin.Context) {
 	err = c.Bind(&formData)
 	for err == nil {
 		port := server.NextAvailablePort()
-		s, err = server.NewServer(playerName, formData, port, formData.Whitelist)
+		s, err = server.NewServer(playerName, formData, port)
 		break
 	}
 

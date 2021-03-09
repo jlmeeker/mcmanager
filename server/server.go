@@ -72,7 +72,7 @@ type Server struct {
 }
 
 // NewServer creates a new instance of Server, and sets up the serverdir
-func NewServer(owner string, formData forms.NewServer, port int, whitelist bool) (Server, error) {
+func NewServer(owner string, formData forms.NewServer, port int) (Server, error) {
 	var s = Server{
 		Name:      formData.Name,
 		Owner:     owner,
@@ -119,8 +119,12 @@ func NewServer(owner string, formData forms.NewServer, port int, whitelist bool)
 			s.Props.set("level-seed", formData.Seed)
 		}
 
-		if whitelist {
+		if formData.Whitelist {
 			s.Props.enableWhiteList()
+		}
+
+		if !formData.PVP {
+			s.Props.set("pvp", "false")
 		}
 
 		err = s.SaveProps()
@@ -570,6 +574,7 @@ type WebView struct {
 	Owner            string `json:"owner"`
 	Players          string `json:"players"`
 	Port             string `json:"port"`
+	PVP              string `json:"pvp"`
 	Release          string `json:"release"`
 	Running          bool   `json:"running"`
 	Seed             string `json:"seed"`
@@ -606,6 +611,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			Ops:              strings.Join(ops, ", "),
 			Owner:            s.Owner,
 			Players:          s.Players(),
+			PVP:              s.Props.get("pvp"),
 			Port:             s.Props.get("server-port"),
 			Release:          s.Release,
 			Running:          s.IsRunning(),

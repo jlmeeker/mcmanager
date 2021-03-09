@@ -8,6 +8,7 @@ type NewServer struct {
 	MOTD      string `form:"motd"`
 	Name      string `form:"name"`
 	Page      string `form:"page"`
+	PVP       bool   `form:"pvp"`
 	StartNow  bool   `form:"startnow"`
 	Whitelist bool   `form:"whitelist"`
 	WorldType string `form:"worldtype"`
