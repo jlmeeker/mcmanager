@@ -110,6 +110,7 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 		err = writeDefaultPropertiesFile(s.ServerDir())
 		err = s.RefreshProperties()
 		s.Props.set("enable-rcon", "true")
+		s.Props.set("gamemode", formData.GameMode)
 		s.Props.set("rcon.password", "admin")
 		s.Props.set("motd", formData.MOTD)
 		s.Props.setPort(port)
@@ -568,6 +569,7 @@ type WebView struct {
 	AmOwner          bool   `json:"amowner"`
 	AutoStart        bool   `json:"autostart"`
 	Flavor           string `json:"flavor"`
+	GameMode         string `json:"gamemode"`
 	MOTD             string `json:"motd"`
 	Name             string `json:"name"`
 	Ops              string `json:"ops"`
@@ -606,6 +608,7 @@ func OpServersWebView(opName string) map[string]WebView {
 			AmOwner:          amowner,
 			AutoStart:        s.AutoStart,
 			Flavor:           s.Flavor,
+			GameMode:         s.Props.get("gamemode"),
 			MOTD:             s.Props.get("motd"),
 			Name:             s.Name,
 			Ops:              strings.Join(ops, ", "),

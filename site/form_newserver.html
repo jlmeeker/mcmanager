@@ -50,6 +50,15 @@
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label for="gamemode" class="form-label">Game Mode</label>
+                        <select class="form-select" aria-label="release" name="gamemode" id="gamemode">
+                        <option value="survival" selected>Survival</option>
+                        <option value="creative">Creative</option>
+                        <option value="adventure">Adventure</option>
+                        <option value="spectator">Spectator</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="seed" class="form-label">Seed</label>
                     <input type="text" class="form-control" name="seed" id="seed" aria-describedby="seedHelp">
                     <div id="seedHelp" class="form-text">Enter a custom world seed here.</div>

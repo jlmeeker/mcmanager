@@ -302,6 +302,7 @@ function newServerCard(item) {
             <strong>MOTD:</strong> `+item.motd+`<br>
             <strong>Flavor:</strong> `+item.flavor+`<br>
             <strong>Release:</strong> `+item.release+`<br>
+            <strong>Game Mode:</strong> `+item.gamemode+`<br>
             <strong>World Type:</strong> `+item.worldtype+`<br>
             <strong>Seed:</strong> `+item.seed+`<br>
             <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>

@@ -5,6 +5,7 @@ type NewServer struct {
 	Release   string `form:"release"`
 	AutoStart bool   `form:"autostart"`
 	Flavor    string `form:"flavor"`
+	GameMode  string `form:"gamemode"`
 	MOTD      string `form:"motd"`
 	Name      string `form:"name"`
 	Page      string `form:"page"`
