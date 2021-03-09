@@ -60,15 +60,59 @@ $ mcmanager --storage <path/to/storagedir>
 
 ## Todo
 
-* Configurable news sources (home page content)
-* Support modded server versions (spigot, craftbukkit, others...)
-* Instance:
-  * automated backups
-  * configuration editing
-  * automated backups
-  * whitelist (view, add, remove, enable/disable)
-  * plugin management
-* and so much more.... (please submit a feature request issue)
+- Configurable:
+  - [ ] news sources (home page content)
+  - [x] host name (commane-line flag)
+  - [ ] automated backups/saves
+  - [ ] schedules for starting/stopping instances (?)
+  - more and more and more
+- Support server versions:
+  - [x] vanilla
+  - [x] spigot
+  - [ ] craftbukkit
+  - plugins:
+    - [ ] upload jar
+    - [ ] upload config
+    - [ ] edit config
+    - [ ] delete jar & configs
+  - others...
+- Instance:
+  - [x] port auto-assigned
+  - [x] view server address
+  - [x] view players online
+  - backups:
+    - [ ] automated
+    - [x] manual
+  - save:
+    - [ ] automated
+    - [x] manual
+  - [ ] configuration editing
+  - [x] hardcore (on create)
+  - [x] game mode (on create)
+  - [x] specify seed (on create)
+  - [x] choose release (on create)
+  - [x] pvp choice (on create)
+  - [x] world type (on create)
+  - MOTD:
+    - [x] set
+    - [ ] change
+    - [x] view
+  - ops:
+    - [x] add
+    - [ ] remove
+    - [x] view
+  - whitelist:
+    - [x] add
+    - [ ] remove
+    - [x] view
+    - [x] enable (on create)
+    - [x] disable (on create)
+  - controls:
+    - [x] time set day
+    - [x] weather clear
+    - [x] world re-gen
+    
+And so much more.... (please submit a feature request issue)
 
 ## License
 
