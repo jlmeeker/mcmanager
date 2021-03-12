@@ -66,6 +66,10 @@ function serverAction(id, action, formdata) {
       if (this.status == 200) {
         document.getElementById('successToastBody').innerText = "Action successful";
         toastList[0].show(); // successToast
+
+        if (action == "delete") {
+          document.getElementById("servers").removeChild(document.getElementById(id));
+        }
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: " + replyObj.error;
         toastList[1].show(); // dangerToast
@@ -345,7 +349,7 @@ function newServerCardV2(item) {
   card.innerHTML = `
     <div class="card text-secondary">
       <div class="card-header mx-0">
-        <button id="deleteIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')" disabled><i class="bi-trash"></i></button>
+        <!-- <button id="deleteIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')"><i class="bi-trash"></i></button> -->
         <div class="dropdown">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink`+ item.uuid + `" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi-list"></i>
@@ -381,9 +385,13 @@ function newServerCardV2(item) {
                 <i class="bi-save2 text-success"></i> Save
               </a>
             </li>
+            <li>
+              <a id="deleteIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item" onClick="deleteServer('` + item.name + `', '` + item.uuid + `')">
+                <i class="bi-trash text-danger"></i> DELETE
+              </a>
+            </li>
           </ul>
         </div>
-        <!-- <button id="menuIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" disabled><i class="bi-list"></i></button> -->
       </div>
       <div id="carouselControls_`+ item.uuid + `" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="0">
         <div class="carousel-inner">
