@@ -104,7 +104,6 @@ function submitForm(loc, form) {
       var replyObj = JSON.parse(this.responseText);
       if (this.status == 200) {
         form.reset();
-
         document.getElementById('successToastBody').innerText = "Success";
         toastList[0].show(); // successToast
 
@@ -122,6 +121,9 @@ function submitForm(loc, form) {
           document.getElementById('logInButton').classList.add("hidden");
           document.getElementById('playerName').innerText = replyObj.playername;
           closeModal('logInModal');
+          if (replyObj.page == "servers") {
+            fetchServers();
+          }
         }
       } else {
         document.getElementById('dangerToastBody').innerText = "Error: " + replyObj.error;
@@ -224,13 +226,6 @@ function fetchServers() {
       if (this.status == 200) {
         refreshServers(JSON.parse(this.responseText));
       } else {
-        document.getElementById("servers").innerHTML = `
-          <div class="text-center lead text-muted">
-              <p>Wow, looks pretty empty here...</p>
-              <br />
-              <p>Log in so you can create your first server!</p>
-          </div>
-          `;
         document.getElementById('dangerToastBody').innerText = "Error getting servers";
         toastList[1].show(); // dangerToast
       }
@@ -241,21 +236,18 @@ function fetchServers() {
 }
 
 function refreshServers(data) {
-  var entries = Object.entries(data);
-  if (entries.length > 0) {
-    document.getElementById("servers").innerHTML = "";
+  if (data.hasOwnProperty("servers")) {
+    var entries = Object.entries(data.servers);
+    document.getElementById("noservers").classList.add("hidden");
     for (var i = 0; i < entries.length; i++) {
-      newServerCard(entries[i][1]);
+      refreshServerCard(entries[i][1]);
     }
   } else {
-    document.getElementById("servers").innerHTML = `
-    <div class="text-center lead text-muted">
-        <p>Wow, looks pretty empty here...</p>
-        <br />
-        <p>Time to get your first server up and running.<br />
-            Click the <i class="bi bi-minecart-loaded text-success"></i> button at the top of the page.</p>
-    </div>
-    `;
+    var scards = document.getElementsByClassName('scard');
+    while (scards[0]) {
+      scards[0].parentNode.removeChild(scards[0]);
+    }
+    document.getElementById("noservers").classList.remove("hidden");
   }
 }
 
@@ -343,4 +335,268 @@ function newServerCard(item) {
     document.getElementById("deleteIndicator_" + item.uuid).classList.remove("hidden");
     document.getElementById("regenIndicator_" + item.uuid).classList.remove("hidden");
   }
+}
+
+
+function newServerCardV2(item) {
+  var card = document.createElement("div");
+  card.classList.add("scard", "col-sm-6", "col-md-6", "col-lg-4", "mb-4");
+  card.id = item.uuid;
+  card.innerHTML = `
+    <div class="card text-secondary">
+      <div class="card-header mx-0">
+        <button id="deleteIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')" disabled><i class="bi-trash"></i></button>
+        <div class="dropdown">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink`+ item.uuid + `" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi-list"></i>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink`+ item.uuid + `">
+            <li>
+              <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="dropdown-item" onClick="whitelistAdd('` + item.uuid + `')">
+                <i class="bi-person-plus text-success"></i> Whitelist Player
+              </a>
+            </li>
+            <li>
+              <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="dropdown-item" onClick="addOp('` + item.uuid + `')">
+                <i class="bi-person-lines-fill text-info"></i> Add Op
+              </a>
+            </li>
+            <li>
+              <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="dropdown-item" onClick="weatherClear('` + item.uuid + `')">
+                <i class="bi-cloud-sun text-primary"></i> Weather Clear
+              </a>
+            </li>
+            <li>
+              <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="dropdown-item" onClick="setDaytime('` + item.uuid + `')">
+                <i class="bi-sunrise text-warning"></i> Set Daytime
+              </a>
+            </li>
+            <li>
+              <a id="backupIndicator_`+ item.uuid + `" title="backup" href="#" class="dropdown-item" onClick="backupServer('` + item.uuid + `')">
+                <i class="bi-filter-square text-primary"></i> Backup
+              </a>
+            </li>
+            <li>
+              <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item" onClick="saveServer('` + item.uuid + `')">
+                <i class="bi-save2 text-success"></i> Save
+              </a>
+            </li>
+          </ul>
+        </div>
+        <!-- <button id="menuIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" disabled><i class="bi-list"></i></button> -->
+      </div>
+      <div id="carouselControls_`+ item.uuid + `" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="0">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+          
+            <div class="card-body bg-light">
+              <div class="card-text servercard">
+                <div class="text-center">
+                  <div class="serverName">
+                    <h1 id="name_`+ item.uuid + `">
+                      `+ item.name + `
+                    </h1>
+                    <span id="address_`+ item.uuid + `" class="text-success">` + hostname + ":" + item.port + `</span> 
+                  </div>
+                  <h4 class="serverState">
+                    <span id="running_`+ item.uuid + `" class="text-success">` + runningToString(item.running) + `</span>
+                  </h4>
+                  <h4 id="motd_`+ item.uuid + `" class="serverMOTD">` + item.motd + `</h4>
+                </div>
+              </div>
+            </div>
+          
+          </div>
+          <div class="carousel-item">
+            <div class="card-body bg-light">
+              <div class="servercard">
+                <div class="text-center">
+                  <button id="regenIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-warning border-warning" title="regen world (DESTRUCTIVE)" href="#" onclick="regenServer('` + item.name + `', '` + item.uuid + `')" disabled>
+                    <i class="bi-card-image"></i>
+                  </button>
+                  <br />
+                  <br />
+                  <button id="startIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-success border-success" title="start" href="#" onClick="startServer('` + item.uuid + `')" disabled>
+                    <i class="bi-caret-right-square"></i>
+                  </button>
+                  <br />
+                  <br />
+                  <button id="stopIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-danger border-danger" title="stop" href="#" onClick="stopServer('` + item.uuid + `')" disabled>
+                    <i class="bi-exclamation-octagon"></i>
+                  </button>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <div class="card-body bg-light">
+              <div class="servercard">
+                <div class="text-center">
+                  <strong>Online Players:</strong><br />
+                  <span id="players_`+ item.uuid + `">` + listToVertical(item.players) + `</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <div class="card-body bg-light">
+              <div class="card-text servercard">
+                <div class="text-center">
+                  <p class="">
+                    <strong>Game Mode:</strong> `+ item.gamemode + `<br>
+                    <strong>World Type:</strong> `+ item.worldtype + `<br>
+                    <strong>Seed:</strong> `+ item.seed + `<br>
+                    <strong>Whitelist On:</strong> `+ item.whitelistenabled + `<br>
+                    <strong>Hardcore:</strong> `+ item.hardcore + `<br>
+                    <strong>PVP:</strong> `+ item.pvp + `<br>
+                    <strong>Autostart:</strong> `+ item.autostart + `<br>
+                    <strong>Ops:</strong> `+ item.ops + `<br>
+                    <strong>Whitelisted:</strong> `+ item.whitelist + `<br>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 
+          <div class="carousel-item">
+            <div class="card-body bg-light">
+              <div class="servercard">
+                <div class="text-center">
+                </div>
+              </div>
+            </div>
+          </div>
+          -->
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselControls_`+ item.uuid + `"  data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselControls_`+ item.uuid + `"  data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+      <div class="card-footer">
+        <div class="float-end col-4 footer-text">
+          <strong>Online</strong><br />
+          <span id="online_`+ item.uuid + `">` + countNonEmpty(item.players) + `</span>
+        </div>
+        <div class="float-end col-4 footer-text">
+          <strong>Flavor</strong><br />
+          <span id="flavor_`+ item.uuid + `">` + item.flavor + `</span>
+        </div>
+        <div class="float-end col-4 footer-text">
+          <strong>Release</strong><br />
+          <span id="release_`+ item.uuid + `">` + item.release + `</span>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById("servers").appendChild(card);
+  updateCardActionButtons(item);
+}
+
+function refreshServerCard(serverData) {
+  var svr = document.getElementById(serverData.uuid);
+  if (svr === null) {
+    newServerCardV2(serverData);
+    return
+  }
+  var props = ["address", "flavor", "motd", "name", "online", "players", "release", "running"];
+  for (var i = 0; i < props.length; i++) {
+    var ele = document.getElementById(props[i] + "_" + serverData.uuid);
+
+    var val = "";
+    if (props[i] === "online") {
+      val = countNonEmpty(serverData.players);
+    } else if (props[i] == "address") {
+      val = hostname + ":" + serverData.port
+    } else if (props[i] == "running") {
+      val = runningToString(serverData.running);
+    } else if (props[i] == "players") {
+      val = listToVertical(serverData.players);
+    } else {
+      val = serverData[props[i]];
+    }
+
+    if (ele.innerHTML != val) {
+      ele.innerHTML = val;
+    }
+  }
+  updateCardActionButtons(serverData);
+}
+
+function updateCardActionButtons(serverData) {
+  if (serverData.running === true) {
+    //document.getElementById("addOpIndicator_" + item.uuid).classList.remove("hidden");
+    //document.getElementById("weatherIndicator_" + item.uuid).classList.remove("hidden");
+    //document.getElementById("daytimeIndicator_" + item.uuid).classList.remove("hidden");
+    //document.getElementById("backupIndicator_" + item.uuid).classList.remove("hidden");
+    //document.getElementById("saveIndicator_" + item.uuid).classList.remove("hidden");
+    //document.getElementById("stopIndicator_" + item.uuid).classList.remove("btn-secondary");
+    //document.getElementById("stopIndicator_" + item.uuid).classList.add("btn-danger");
+    document.getElementById("startIndicator_" + serverData.uuid).setAttribute("disabled", true);
+    document.getElementById("stopIndicator_" + serverData.uuid).removeAttribute("disabled");
+
+    if (serverData.whitelistenabled === true) {
+      //document.getElementById("whitelistPlayerIndicator_" + item.uuid).classList.remove("hidden");
+    }
+  } else {
+    //document.getElementById("startIndicator_" + item.uuid).classList.remove("btn-secondary");
+    //document.getElementById("startIndicator_" + item.uuid).classList.add("btn-success");
+    document.getElementById("stopIndicator_" + serverData.uuid).setAttribute("disabled", true);
+    document.getElementById("startIndicator_" + serverData.uuid).removeAttribute("disabled");
+  }
+  if (serverData.amowner === true) {
+    //document.getElementById("regenIndicator_" + item.uuid).classList.remove("btn-secondary");
+    //document.getElementById("regenIndicator_" + item.uuid).classList.add("btn-warning");
+    document.getElementById("regenIndicator_" + serverData.uuid).removeAttribute("disabled");
+    document.getElementById("deleteIndicator_" + serverData.uuid).removeAttribute("disabled");
+  } else {
+    document.getElementById("regenIndicator_" + serverData.uuid).setAttribute("disabled", true);
+    document.getElementById("deleteIndicator_" + serverData.uuid).setAttribute("disabled", true);
+  }
+}
+
+function countNonEmpty(arry) {
+  if (arry === null) {
+    return 0
+  }
+  var count = 0
+  for (var i = 0; i < arry.length; i++) {
+    if (arry[i] != "") {
+      count++
+    }
+  }
+
+  return count
+}
+
+function runningToString(val) {
+  if (val === true) {
+    return "Running"
+  } else if (val === false) {
+    return "Stopped"
+  }
+  return "Status Unknown"
+}
+
+function listToVertical(list) {
+  var view = "";
+  if (list === null) {
+    return view
+  }
+  for (var i = 0; i < list.length; i++) {
+    view += list[i] + "<br />";
+  }
+  return view
+}
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
 }

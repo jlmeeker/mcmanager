@@ -2,21 +2,27 @@
 <div id="nav" class="row">
     <nav class="navbar navbar-expand-md navbar-light bg-light shadow-lg">
         <div class="container">
-            <a class="navbar-brand" href="/"><img src="/img/mc.png" height="50" width="50"> {{.AppTitle}}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <a class="navbar-brand" href="/"><img src="/img/mc.png" height="50" width="50"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    <a class="nav-link {{if eq .Page "home" }}active{{end}}" aria-current="page" href="/">Home</a>
-                    <a class="nav-link {{if eq .Page "servers" }}active{{end}}" href="/view/servers">Servers</a>
-                    <a class="nav-link {{if eq .Page "releases" }}active{{end}}" href="/view/releases">Releases</a>
-                    <a class="nav-link {{if eq .Page "status" }}active{{end}}" href="/view/status">Status</a>                    
-                    <a id="newServerIcon" class="nav-link text-success {{if not .Authenticated}}hidden{{end}}" href="#" data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i> New</a>
+                    <a class="nav-link {{if eq .Page " home" }}active{{end}}" aria-current="page" href="/">Home</a>
+                    <a class="nav-link {{if eq .Page " servers" }}active{{end}}" href="/view/servers">Servers</a>
+                    <a class="nav-link {{if eq .Page " releases" }}active{{end}}" href="/view/releases">Releases</a>
+                    <a class="nav-link {{if eq .Page " status" }}active{{end}}" href="/view/status">Status</a>
+                    <a id="newServerIcon" class="nav-link text-success {{if not .Authenticated}}hidden{{end}}" href="#"
+                        data-bs-toggle="modal" data-bs-target="#newServerModal"><i class="bi bi-minecart-loaded"></i>
+                        New</a>
                 </div>
             </div>
-            <button id="logInButton" type="button" class="btn btn-primary btn-sm {{if .Authenticated}}hidden{{end}}" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
-            <span id="playerName">{{if .Authenticated}}{{.PlayerName}}{{end}}</span>&nbsp; &nbsp;<a id="logOutButton" href="#" onclick="logout()" alt="log out" class="{{if not .Authenticated}}hidden{{end}}"><i class="bi-lock-fill text-danger"></i></a>
+            <button id="logInButton" type="button" class="btn btn-primary btn-sm {{if .Authenticated}}hidden{{end}}"
+                data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
+            <span id="playerName">{{if .Authenticated}}{{.PlayerName}}{{end}}</span>&nbsp; &nbsp;<a id="logOutButton"
+                href="#" onclick="logout()" alt="log out" class="{{if not .Authenticated}}hidden{{end}}"><i
+                    class="bi-lock-fill text-danger"></i></a>
         </div>
     </nav>
 </div>

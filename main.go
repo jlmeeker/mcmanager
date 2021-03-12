@@ -58,8 +58,9 @@ func main() {
 	}
 
 	go func() {
-		var err error
+		//var err error
 		for {
+
 			err = vanilla.RefreshReleases()
 			if err != nil {
 				fmt.Println(err.Error())

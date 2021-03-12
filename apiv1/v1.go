@@ -25,6 +25,7 @@ func AuditLogMiddleware() gin.HandlerFunc {
 		serverID := c.Param("serverid")
 		for err == nil {
 			playerName, err = c.Cookie("player")
+
 			pathParts := strings.Split(c.Request.URL.Path, "/")
 			if len(pathParts) >= 2 {
 				action = pathParts[2 : len(pathParts)-1]
@@ -55,7 +56,9 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		c.AbortWithStatus(http.StatusUnauthorized)
+		c.AbortWithStatusJSON(http.StatusOK, gin.H{
+			"error": "unauthorized",
+		})
 	}
 }
 
@@ -384,9 +387,11 @@ func Save(c *gin.Context) {
 
 // Servers returns a list of servers the logged in player is either owner of or op on
 func Servers(c *gin.Context) {
-	var result = make(map[string]server.WebView)
+	var result = gin.H{}
+	var servers = make(map[string]server.WebView)
 	playerName, _ := c.Cookie("player")
-	result = server.OpServersWebView(playerName)
+	servers = server.OpServersWebView(playerName)
+	result["servers"] = servers
 	c.JSON(http.StatusOK, result)
 }
 

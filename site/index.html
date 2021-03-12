@@ -15,8 +15,19 @@
   <script>
     hostname = "{{.Hostname}}";
   </script>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
 </head>
 <style>
+  body {
+    font-family: 'Baloo 2', cursive;
+    font-size: 18px;
+  }
+
+  #playerName {
+    color: rgba(0, 0, 0, .55);
+  }
+
   a {
     color: darkgreen;
     text-decoration: none;
@@ -26,13 +37,93 @@
     display: none;
   }
 
+  .border-success,
+  .border-warning,
+  .border-danger {
+    border-width: 2px;
+    ;
+  }
+
   .today>.card {
     box-shadow: 0 .5rem 1rem rgba(5, 105, 50, 0.50) !important;
   }
 
-  .card:hover {
-    box-shadow: 0 .5rem 1rem rgba(0, 78, 247, 0.5) !important;
+  .card {
+    box-shadow: 0 .25rem .5rem rgba(0, 0, 0, .15) !important;
   }
+
+  .card-header {
+    font-weight: bold;
+  }
+
+  .card-footer {
+    width: 101%;
+  }
+
+  .card-body.tophalf {
+    height: 150px;
+    text-align: center;
+  }
+
+  .card-body.bottomhalf {
+    text-align: center;
+    height: 150px;
+  }
+
+  .servercard {
+    width: 100%;
+    height: 300px;
+  }
+
+  .servercard .card-text {
+    margin: 0px 8%;
+  }
+
+  .serverName,
+  .serverState {
+    margin-bottom: 3.5rem;
+  }
+
+  .serverAddress {}
+
+  .serverMOTD {
+    margin-top: 3rem;
+  }
+
+  .servercard button i {
+    font-size: 2em;
+  }
+
+  .carousel-control-next,
+  .carousel-control-prev {
+    width: 10% !important;
+  }
+
+  .footer-text {
+    text-align: center;
+    font-size: .8em;
+  }
+
+  .footer-text:nth-child(2) {
+    border-left: 1px solid rgba(108, 117, 125, 0.5);
+    border-right: 1px solid rgba(108, 117, 125, 0.5);
+  }
+
+  .tool {
+    margin-left: .5rem;
+  }
+
+
+  button:hover {
+    transform: scale(1.1);
+    transition: transform 500ms;
+  }
+
+  /*
+  .card:hover {
+    box-shadow: 0 .1rem .2rem rgba(0, 78, 247, 0.5) !important;
+  }
+  */
 </style>
 
 <body>

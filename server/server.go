@@ -378,18 +378,21 @@ func (s *Server) Ops() []Op {
 }
 
 // Players gets player list
-func (s *Server) Players() string {
+func (s *Server) Players() []string {
+	var players []string
 	reply, err := s.rcon("list")
 	if err != nil {
-		return ""
+		return players
 	}
 
 	parts := strings.Split(reply, ":")
 	if len(parts) < 2 {
-		return ""
+		return players
 	}
 
-	return parts[1]
+	players = strings.Split(strings.TrimSpace(parts[1]), ",")
+
+	return players
 }
 
 // RefreshProperties reads in the server.properties values
@@ -588,25 +591,25 @@ func (s *Server) WhitelistEnabled() bool {
 
 // WebView web view of a server instance
 type WebView struct {
-	AmOwner          bool   `json:"amowner"`
-	AutoStart        bool   `json:"autostart"`
-	Flavor           string `json:"flavor"`
-	GameMode         string `json:"gamemode"`
-	Hardcore         string `json:"hardcore"`
-	MOTD             string `json:"motd"`
-	Name             string `json:"name"`
-	Ops              string `json:"ops"`
-	Owner            string `json:"owner"`
-	Players          string `json:"players"`
-	Port             string `json:"port"`
-	PVP              string `json:"pvp"`
-	Release          string `json:"release"`
-	Running          bool   `json:"running"`
-	Seed             string `json:"seed"`
-	UUID             string `json:"uuid"`
-	WhiteList        string `json:"whitelist"`
-	WhiteListEnabled bool   `json:"whitelistenabled"`
-	WorldType        string `json:"worldtype"`
+	AmOwner          bool     `json:"amowner"`
+	AutoStart        bool     `json:"autostart"`
+	Flavor           string   `json:"flavor"`
+	GameMode         string   `json:"gamemode"`
+	Hardcore         string   `json:"hardcore"`
+	MOTD             string   `json:"motd"`
+	Name             string   `json:"name"`
+	Ops              string   `json:"ops"`
+	Owner            string   `json:"owner"`
+	Players          []string `json:"players"`
+	Port             string   `json:"port"`
+	PVP              string   `json:"pvp"`
+	Release          string   `json:"release"`
+	Running          bool     `json:"running"`
+	Seed             string   `json:"seed"`
+	UUID             string   `json:"uuid"`
+	WhiteList        string   `json:"whitelist"`
+	WhiteListEnabled bool     `json:"whitelistenabled"`
+	WorldType        string   `json:"worldtype"`
 }
 
 // OpServersWebView is a web view of a list of servers
