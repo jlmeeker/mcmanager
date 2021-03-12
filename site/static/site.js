@@ -349,7 +349,6 @@ function newServerCardV2(item) {
   card.innerHTML = `
     <div class="card text-secondary">
       <div class="card-header mx-0">
-        <!-- <button id="deleteIndicator_`+ item.uuid + `" type="button" class="btn btn-outline-secondary float-end tool" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')"><i class="bi-trash"></i></button> -->
         <div class="dropdown">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink`+ item.uuid + `" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi-list"></i>
