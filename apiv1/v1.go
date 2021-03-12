@@ -304,6 +304,17 @@ func Logout(c *gin.Context) {
 	c.JSON(success, data)
 }
 
+// Me get my preferences
+func Me(c *gin.Context) {
+	playerName, _ := c.Cookie("player")
+	c.JSON(http.StatusOK, gin.H{
+		"hostname":   server.HOSTNAME,
+		"result":     http.StatusOK,
+		"isLoggedIn": true,
+		"playerName": playerName,
+	})
+}
+
 // News returns the current news items
 func News(c *gin.Context) {
 	c.JSON(200, vanilla.News)

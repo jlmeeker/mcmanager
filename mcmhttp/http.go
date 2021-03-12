@@ -56,7 +56,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) error {
 	router.GET("/", viewHandler)
 	router.GET("/view/:page", viewHandler)
 
-	v1 := router.Group("/v1")
+	v1 := router.Group("/api/v1")
 	{
 		// these routes available without authorization
 		v1.POST("/login", apiv1.Login)
@@ -69,6 +69,7 @@ func Listen(appTitle, addr string, webfiles *fs.FS, hostname string) error {
 		v1.POST("/create", apiv1.CreateHandler)
 		v1.POST("/logout", apiv1.Logout)
 		v1.GET("/servers", apiv1.Servers)
+		v1.GET("/me", apiv1.Me)
 
 		// all routes below this line REQUIRE at least Op access to the requested server
 		v1.Use(server.AuthorizeOpMiddleware())

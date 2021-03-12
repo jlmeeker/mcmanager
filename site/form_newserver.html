@@ -4,92 +4,94 @@
 <div class="modal fade" id="newServerModal" tabindex="-1" aria-labelledby="newServerLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">New Server</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form name="newServer" onsubmit="return submitForm('/v1/create', this)" >
-                <div class="mb-3">
-                  <label for="name" class="form-label">Name</label>
-                  <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp">
-                  <div id="nameHelp" class="form-text">A short name (no spaces)</div>
-                </div>
-                <div class="mb-3">
-                  <label for="motd" class="form-label">MOTD</label>
-                  <input type="text" class="form-control" name="motd" id="motd" aria-describedby="motdHelp">
-                  <div id="motdHelp" class="form-text">Anything you want can go here.</div>
-                </div>
-                <div class="mb-3">
-                    <label for="flavor" class="form-label">Flavor</label>
-                    <select class="form-select" aria-label="release" name="flavor" id="flavor">
-                        {{- range .Releases.Flavors}}
-                        <option value="{{.}}">{{.}}</option>
-                        {{- end}}
-                    </select>
-                    <!--<input type="text" class="form-control" name="flavor" id="flavor" value="vanilla">-->
-                </div>
-                <div class="mb-3">
-                    <label for="release" class="form-label">Release</label>
-                    <select class="form-select" aria-label="release" name="release" id="release">
-                        <option value="{{$latestSnapshot}}">{{$latestSnapshot}}</option>
-                        {{- range .Releases.Vanilla.Versions}}
-                        {{- if eq .Type "release"}}
-                        <option value="{{.ID}}" {{if eq .ID $latest}}selected{{end}}>{{.ID}}</option>
-                        {{- end}}
-                        {{- end}}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="worldtype" class="form-label">World Type</label>
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">New Server</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="newServer" onsubmit="return submitForm('/api/v1/create', this)">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp">
+                        <div id="nameHelp" class="form-text">A short name (no spaces)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motd" class="form-label">MOTD</label>
+                        <input type="text" class="form-control" name="motd" id="motd" aria-describedby="motdHelp">
+                        <div id="motdHelp" class="form-text">Anything you want can go here.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="flavor" class="form-label">Flavor</label>
+                        <select class="form-select" aria-label="release" name="flavor" id="flavor">
+                            {{- range .Releases.Flavors}}
+                            <option value="{{.}}">{{.}}</option>
+                            {{- end}}
+                        </select>
+                        <!--<input type="text" class="form-control" name="flavor" id="flavor" value="vanilla">-->
+                    </div>
+                    <div class="mb-3">
+                        <label for="release" class="form-label">Release</label>
+                        <select class="form-select" aria-label="release" name="release" id="release">
+                            <option value="{{$latestSnapshot}}">{{$latestSnapshot}}</option>
+                            {{- range .Releases.Vanilla.Versions}}
+                            {{- if eq .Type "release"}}
+                            <option value="{{.ID}}" {{if eq .ID $latest}}selected{{end}}>{{.ID}}</option>
+                            {{- end}}
+                            {{- end}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="worldtype" class="form-label">World Type</label>
                         <select class="form-select" aria-label="release" name="worldtype" id="worldtype">
-                        <option value="default" selected>Default</option>
-                        <option value="flat">Flat</option>
-                        <option value="largeBiomes">Large Biomes</option>
-                        <option value="amplified">Amplified</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="gamemode" class="form-label">Game Mode</label>
+                            <option value="default" selected>Default</option>
+                            <option value="flat">Flat</option>
+                            <option value="largeBiomes">Large Biomes</option>
+                            <option value="amplified">Amplified</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gamemode" class="form-label">Game Mode</label>
                         <select class="form-select" aria-label="release" name="gamemode" id="gamemode">
-                        <option value="survival" selected>Survival</option>
-                        <option value="creative">Creative</option>
-                        <option value="adventure">Adventure</option>
-                        <option value="spectator">Spectator</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="seed" class="form-label">Seed</label>
-                    <input type="text" class="form-control" name="seed" id="seed" aria-describedby="seedHelp">
-                    <div id="seedHelp" class="form-text">Enter a custom world seed here.</div>
-                </div>
-                <div class="mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="hardcore" id="hardcore" value="true">
-                        <label class="form-check-label" for="hardcore">Hardcore</label>
+                            <option value="survival" selected>Survival</option>
+                            <option value="creative">Creative</option>
+                            <option value="adventure">Adventure</option>
+                            <option value="spectator">Spectator</option>
+                        </select>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="pvp" id="pvp" value="true" checked>
-                        <label class="form-check-label" for="pvp">Enable PVP</label>
+                    <div class="mb-3">
+                        <label for="seed" class="form-label">Seed</label>
+                        <input type="text" class="form-control" name="seed" id="seed" aria-describedby="seedHelp">
+                        <div id="seedHelp" class="form-text">Enter a custom world seed here.</div>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="whitelist" id="whitelist" value="true" checked>
-                        <label class="form-check-label" for="whitelist">Whitelist</label>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="hardcore" id="hardcore" value="true">
+                            <label class="form-check-label" for="hardcore">Hardcore</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="pvp" id="pvp" value="true" checked>
+                            <label class="form-check-label" for="pvp">Enable PVP</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="whitelist" id="whitelist" value="true"
+                                checked>
+                            <label class="form-check-label" for="whitelist">Whitelist</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="startnow" id="startnow" value="true">
+                            <label class="form-check-label" for="startnow">Start NOW!</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="autostart" id="autostart"
+                                value="true">
+                            <label class="form-check-label" for="autostart">Enable auto start</label>
+                        </div>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="startnow" id="startnow" value="true">
-                        <label class="form-check-label" for="startnow">Start NOW!</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="autostart" id="autostart" value="true">
-                        <label class="form-check-label" for="autostart">Enable auto start</label>
-                    </div>
-                </div>
-                <input type="hidden" name="page" value="{{.Page}}">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-        <div class="modal-footer"></div>
+                    <input type="hidden" name="page" value="{{.Page}}">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer"></div>
         </div>
     </div>
 </div>

@@ -25,6 +25,24 @@ import (
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
 
+// HOSTNAME is where we store the flag value
+var HOSTNAME = "localhost"
+
+// Hostname takes the flag value and calculates the best attempt at a hostname
+func Hostname(flagValue string) {
+	var hn string
+	if flagValue != "" {
+		hn = flagValue
+	} else {
+		goHostName, err := os.Hostname()
+		if err == nil {
+			hn = goHostName
+		}
+	}
+
+	HOSTNAME = hn
+}
+
 //AuthorizeOpMiddleware middleware
 func AuthorizeOpMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

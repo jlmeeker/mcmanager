@@ -33,6 +33,8 @@ var (
 func main() {
 	flag.Parse()
 
+	server.Hostname(*flagHostName)
+
 	if *flagStorageDir == "" {
 		fmt.Println("option -storage is required")
 		os.Exit(1)

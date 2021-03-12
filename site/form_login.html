@@ -2,27 +2,29 @@
 <div class="modal fade" id="logInModal" tabindex="-1" aria-labelledby="logInLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Log In</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form name="login" onsubmit="return submitForm('/v1/login', this)" >
-                <div class="mb-3">
-                  <label for="username" class="form-label">Username</label>
-                  <input type="text" class="form-control" name="username" id="username" aria-describedby="usernameHelp">
-                  <div id="usernameHelp" class="form-text">Your minecraft.net email</div>
-                </div>
-                <div class="mb-3">
-                  <label for="password" class="form-label">Password</label>
-                  <input type="password" class="form-control" name="password" id="password" aria-describedby="passwordHelp">
-                  <div id="passwordHelp" class="form-text">Your minecraft.net password</div>
-                </div>
-                <input type="hidden" name="page" value="{{.Page}}">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-        <div class="modal-footer"></div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Log In</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="login" onsubmit="return submitForm('/api/v1/login', this)">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" id="username"
+                            aria-describedby="usernameHelp">
+                        <div id="usernameHelp" class="form-text">Your minecraft.net email</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" id="password"
+                            aria-describedby="passwordHelp">
+                        <div id="passwordHelp" class="form-text">Your minecraft.net password</div>
+                    </div>
+                    <input type="hidden" name="page" value="{{.Page}}">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer"></div>
         </div>
     </div>
 </div>

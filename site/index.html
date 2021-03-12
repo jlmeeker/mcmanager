@@ -1,73 +1,90 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.AppTitle}}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
-    <script src="/js/site.js"></script>
-    <script>
-      hostname = "{{.Hostname}}";
-    </script>
-  </head>
-  <style>
-    a {
-      color:darkgreen;
-      text-decoration: none;
-    }
-    .hidden {
-      display: none;
-    }
-    .today > .card {
-      box-shadow: 0 .5rem 1rem rgba(5, 105, 50, 0.50) !important;
-    }
-    .card:hover {
-      box-shadow: 0 .5rem 1rem rgba(0, 78, 247, 0.5) !important;
-    }
-  </style>
-  <body>
-    <div class="container">
-        {{template "nav" .}}
-        {{- if eq .Page "home"}}
-          {{- template "home" .}}
-        {{- else if eq .Page "servers"}}
-          {{- template "servers" .}}
-        {{- else if eq .Page "releases"}}
-          {{- template "releases" .Releases}}
-        {{- else if eq .Page "status"}}
-          {{- template "status" .Status}}
-        {{- else}}
-          {{- template "notfound"}}
-        {{- end}}
-    </div>
 
-    <div id="successToast" class="toast align-items-center text-white bg-primary border-0 position-absolute m-3 bottom-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div id="successToastBody" class="toast-body"></div>
-      </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.AppTitle}}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"></script>
+  <script src="/js/site.js"></script>
+  <script>
+    hostname = "{{.Hostname}}";
+  </script>
+</head>
+<style>
+  a {
+    color: darkgreen;
+    text-decoration: none;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .today>.card {
+    box-shadow: 0 .5rem 1rem rgba(5, 105, 50, 0.50) !important;
+  }
+
+  .card:hover {
+    box-shadow: 0 .5rem 1rem rgba(0, 78, 247, 0.5) !important;
+  }
+</style>
+
+<body>
+  <div class="container">
+    {{template "nav" .}}
+    {{- if eq .Page "home"}}
+    {{- template "home" .}}
+    {{- else if eq .Page "servers"}}
+    {{- template "servers" .}}
+    {{- else if eq .Page "releases"}}
+    {{- template "releases" .Releases}}
+    {{- else if eq .Page "status"}}
+    {{- template "status" .Status}}
+    {{- else}}
+    {{- template "notfound"}}
+    {{- end}}
+  </div>
+
+  <div id="successToast"
+    class="toast align-items-center text-white bg-primary border-0 position-absolute m-3 bottom-0 end-0" role="alert"
+    aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="successToastBody" class="toast-body"></div>
     </div>
-    <div id="dangerToast" class="toast align-items-center text-white bg-danger border-0 position-absolute m-3 bottom-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div id="dangerToastBody" class="toast-body"></div>
-        </div>
+  </div>
+  <div id="dangerToast"
+    class="toast align-items-center text-white bg-danger border-0 position-absolute m-3 bottom-0 end-0" role="alert"
+    aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="dangerToastBody" class="toast-body"></div>
     </div>
-    <div id="primaryToast" class="toast align-items-center text-white bg-primary border-0 position-absolute m-3 bottom-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div id="dangerToastBody" class="toast-body"></div>
-      </div>
+  </div>
+  <div id="primaryToast"
+    class="toast align-items-center text-white bg-primary border-0 position-absolute m-3 bottom-0 end-0" role="alert"
+    aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="dangerToastBody" class="toast-body"></div>
     </div>
-    <div id="warningToast" class="toast align-items-center text-black bg-warning border-0 position-absolute m-3 bottom-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div id="warningToastBody" class="toast-body"></div>
-      </div>
+  </div>
+  <div id="warningToast"
+    class="toast align-items-center text-black bg-warning border-0 position-absolute m-3 bottom-0 end-0" role="alert"
+    aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="warningToastBody" class="toast-body"></div>
     </div>
-    <script>
-      var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-      var toastList = toastElList.map(function (toastEl) {
-        return new bootstrap.Toast(toastEl, 3000);
-      });
-    </script>
-  </body>
+  </div>
+  <script>
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function (toastEl) {
+      return new bootstrap.Toast(toastEl, 3000);
+    });
+  </script>
+</body>
+
 </html>

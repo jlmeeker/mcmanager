@@ -18,16 +18,16 @@ function saveServer(id) {
 }
 
 function deleteServer(name, id) {
-  var r = confirm("Delete "+name+"?\n\nTHIS CANNOT BE UNDONE !!!");
-  if ( r === false) {
+  var r = confirm("Delete " + name + "?\n\nTHIS CANNOT BE UNDONE !!!");
+  if (r === false) {
     return false;
   }
   serverAction(id, "delete");
 }
 
 function regenServer(name, id) {
-  var r = confirm("Regen "+name+"?\n\nTHIS WILL DELETE ALL WORLD AND IN-GAME PLAYER DATA !!!");
-  if ( r === false) {
+  var r = confirm("Regen " + name + "?\n\nTHIS WILL DELETE ALL WORLD AND IN-GAME PLAYER DATA !!!");
+  if (r === false) {
     return false;
   }
   serverAction(id, "regen");
@@ -60,20 +60,20 @@ function whitelistAdd(serverID) {
 
 function serverAction(id, action, formdata) {
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4) {
       var replyObj = JSON.parse(this.responseText);
       if (this.status == 200) {
         document.getElementById('successToastBody').innerText = "Action successful";
         toastList[0].show(); // successToast
       } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
+        document.getElementById('dangerToastBody').innerText = "Error: " + replyObj.error;
         toastList[1].show(); // dangerToast
       }
       fetchServers();
     }
   };
-  xhttp.open("POST", "/v1/"+action+"/"+id, true);
+  xhttp.open("POST", "/api/v1/" + action + "/" + id, true);
 
   if (formdata instanceof Object) {
     xhttp.send(formdata);
@@ -90,8 +90,8 @@ function closeModal(id) {
 }
 
 // All Forms (new server, login etc.)
-function submitForm(loc, form){
-  if (loc == "/v1/create" && form.flavor.value == "spigot") {
+function submitForm(loc, form) {
+  if (loc == "/api/v1/create" && form.flavor.value == "spigot") {
     document.getElementById('warningToastBody').innerText = "Could take a while, may need to build release.";
     toastList[3]._config.delay = 2000;
     toastList[3].show(); // warningToast
@@ -99,7 +99,7 @@ function submitForm(loc, form){
 
   var data = new FormData(form);
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4) {
       var replyObj = JSON.parse(this.responseText);
       if (this.status == 200) {
@@ -108,7 +108,7 @@ function submitForm(loc, form){
         document.getElementById('successToastBody').innerText = "Success";
         toastList[0].show(); // successToast
 
-        if (loc == "/v1/create") {
+        if (loc == "/api/v1/create") {
           toastList[3]._config.delay = 5000;
           closeModal('newServerModal');
           if (replyObj.page == "servers") {
@@ -116,7 +116,7 @@ function submitForm(loc, form){
           } else {
             document.location.href = "/view/servers";
           }
-        } else if (loc == "/v1/login") {
+        } else if (loc == "/api/v1/login") {
           document.getElementById('newServerIcon').classList.remove("hidden");
           document.getElementById('logOutButton').classList.remove("hidden");
           document.getElementById('logInButton').classList.add("hidden");
@@ -124,12 +124,12 @@ function submitForm(loc, form){
           closeModal('logInModal');
         }
       } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+replyObj.error;
+        document.getElementById('dangerToastBody').innerText = "Error: " + replyObj.error;
         toastList[1].show(); // dangerToast
       }
     }
   };
-  xhttp.open("POST",loc, true);
+  xhttp.open("POST", loc, true);
   xhttp.send(data);
   return false;
 }
@@ -137,7 +137,7 @@ function submitForm(loc, form){
 // Logout
 function logout() {
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4) {
       if (this.status == 200) {
         document.getElementById('newServerIcon').classList.add("hidden");
@@ -148,12 +148,12 @@ function logout() {
         toastList[0].show(); // successToast
         refreshServers({});
       } else {
-        document.getElementById('dangerToastBody').innerText = "Error: "+this.responseText;
+        document.getElementById('dangerToastBody').innerText = "Error: " + this.responseText;
         toastList[1].show(); // dangerToast
       }
     }
   };
-  xhttp.open("POST", "/v1/logout", true);
+  xhttp.open("POST", "/api/v1/logout", true);
   xhttp.send();
   return false;
 }
@@ -161,18 +161,18 @@ function logout() {
 // News
 function fetchNews() {
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4) {
       if (this.status == 200) {
         refreshNews(JSON.parse(this.responseText));
       } else {
-          document.getElementById('dangerToastBody').innerText = "Error getting news";
-          toastList[1].show(); // dangerToast
+        document.getElementById('dangerToastBody').innerText = "Error getting news";
+        toastList[1].show(); // dangerToast
       }
     }
   };
-  xhttp.open("GET", "/v1/news", true);
-  xhttp.send(); 
+  xhttp.open("GET", "/api/v1/news", true);
+  xhttp.send();
 }
 
 function refreshNews(data) {
@@ -189,14 +189,14 @@ function newNewsCard(item) {
   var card = document.createElement("div");
   card.classList.add("col-sm-6", "col-lg-4", "mb-4", "newsitem");
   card.innerHTML = `
-  <a href="`+item.preview.Link+`" target="_blank">
+  <a href="`+ item.preview.Link + `" target="_blank">
     <div class="card shadow newsitem">
-      <img class="card-img-top" src="`+item.preview.Images[0]+`">
+      <img class="card-img-top" src="`+ item.preview.Images[0] + `">
       <div class="card-body bg-light">
-        <h5 class="card-title">`+item.preview.Title+`</h5>
-        <p class="card-text">`+item.preview.Description+`</p>
+        <h5 class="card-title">`+ item.preview.Title + `</h5>
+        <p class="card-text">`+ item.preview.Description + `</p>
         <p class="card-text">
-          <small class="text-muted">`+item.posted+` (`+item.preview.Name+`)</small>
+          <small class="text-muted">`+ item.posted + ` (` + item.preview.Name + `)</small>
         </p>
       </div>
     </div>
@@ -210,16 +210,16 @@ function newNewsCard(item) {
 }
 
 function isToday(d) {
-	const today = new Date();
-	return d.getDate() == today.getDate() &&
-	  d.getMonth() == today.getMonth() &&
-	  d.getFullYear() == today.getFullYear()
+  const today = new Date();
+  return d.getDate() == today.getDate() &&
+    d.getMonth() == today.getMonth() &&
+    d.getFullYear() == today.getFullYear()
 }
 
 // Servers
 function fetchServers() {
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4) {
       if (this.status == 200) {
         refreshServers(JSON.parse(this.responseText));
@@ -236,8 +236,8 @@ function fetchServers() {
       }
     }
   };
-  xhttp.open("GET", "/v1/servers", true);
-  xhttp.send(); 
+  xhttp.open("GET", "/api/v1/servers", true);
+  xhttp.send();
 }
 
 function refreshServers(data) {
@@ -265,60 +265,60 @@ function newServerCard(item) {
   card.id = item.uuid;
   card.innerHTML = `
     <div class="card shadow">
-        <h4 class="card-header bg-light shadow">`+item.name+`
+        <h4 class="card-header bg-light shadow">`+ item.name + `
           <div class="mb-0" style="float: right;">
-            <a id="regenIndicator_`+item.uuid+`" title="regen world (DESTRUCTIVE)" href="#" class="hidden" onClick="regenServer('`+item.name+`', '`+item.uuid+`')">
+            <a id="regenIndicator_`+ item.uuid + `" title="regen world (DESTRUCTIVE)" href="#" class="hidden" onClick="regenServer('` + item.name + `', '` + item.uuid + `')">
               <i class="bi-card-image text-success"></i>
             </a>
-            <a id="startIndicator_`+item.uuid+`" title="start" href="#" class="hidden" onClick="startServer('`+item.uuid+`')">
+            <a id="startIndicator_`+ item.uuid + `" title="start" href="#" class="hidden" onClick="startServer('` + item.uuid + `')">
               <i class="bi-caret-right-square text-success"></i>
             </a>
-            <a id="stopIndicator_`+item.uuid+`" title="stop" href="#" class="hidden" onClick="stopServer('`+item.uuid+`')">
+            <a id="stopIndicator_`+ item.uuid + `" title="stop" href="#" class="hidden" onClick="stopServer('` + item.uuid + `')">
               <i class="bi-exclamation-square text-warning"></i>
             </a>
-            <a id="deleteIndicator_`+item.uuid+`" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('`+item.name+`', '`+item.uuid+`')" class="hidden">
+            <a id="deleteIndicator_`+ item.uuid + `" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')" class="hidden">
               <i class="bi-x-square text-danger"></i>
             </a>
           </div>
         </h4>
         <h4 class="card-header">
           <div class="mb-0">
-            <a id="whitelistPlayerIndicator_`+item.uuid+`" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('`+item.uuid+`')">
+            <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('` + item.uuid + `')">
               <i class="bi-person-plus text-success"></i>
             </a>
-            <a id="addOpIndicator_`+item.uuid+`" title="add op" href="#" class="hidden" onClick="addOp('`+item.uuid+`')">
+            <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="hidden" onClick="addOp('` + item.uuid + `')">
               <i class="bi-person-lines-fill text-info"></i>
             </a>
-            <a id="weatherIndicator_`+item.uuid+`" title="clear weather" href="#" class="hidden" onClick="weatherClear('`+item.uuid+`')">
+            <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="hidden" onClick="weatherClear('` + item.uuid + `')">
               <i class="bi-cloud-sun text-primary"></i>
             </a>
-            <a id="daytimeIndicator_`+item.uuid+`" title="make daytime" href="#" class="hidden" onClick="setDaytime('`+item.uuid+`')">
+            <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="hidden" onClick="setDaytime('` + item.uuid + `')">
               <i class="bi-sunrise text-warning"></i>
             </a>
-            <a id="backupIndicator_`+item.uuid+`" title="backup" href="#" class="hidden" onClick="backupServer('`+item.uuid+`')">
+            <a id="backupIndicator_`+ item.uuid + `" title="backup" href="#" class="hidden" onClick="backupServer('` + item.uuid + `')">
             <i class="bi-filter-square text-primary"></i>
             </a>
-            <a id="saveIndicator_`+item.uuid+`" title="save" href="#" class="hidden" onClick="saveServer('`+item.uuid+`')">
+            <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="hidden" onClick="saveServer('` + item.uuid + `')">
               <i class="bi-save2 text-success"></i>
             </a>
           </div>
         </h4>
         <div class="card-body bg-light servercard">
-          <h6 class="card-title"><strong>Server Address:</strong> <br /><span class="text-success">`+hostname+":"+item.port+`</span></h6>
+          <h6 class="card-title"><strong>Server Address:</strong> <br /><span class="text-success">`+ hostname + ":" + item.port + `</span></h6>
           <p class="card-text">
-            <strong>MOTD:</strong> `+item.motd+`<br>
-            <strong>Flavor:</strong> `+item.flavor+`<br>
-            <strong>Release:</strong> `+item.release+`<br>
-            <strong>Game Mode:</strong> `+item.gamemode+`<br>
-            <strong>World Type:</strong> `+item.worldtype+`<br>
-            <strong>Seed:</strong> `+item.seed+`<br>
-            <strong>Whitelist On:</strong> `+item.whitelistenabled+`<br>
-            <strong>Hardcore:</strong> `+item.hardcore+`<br>
-            <strong>PVP:</strong> `+item.pvp+`<br>
-            <strong>Autostart:</strong> `+item.autostart+`<br>
-            <strong>Ops:</strong> `+item.ops+`<br>
-            <strong>Whitelisted:</strong> `+item.whitelist+`<br>
-            <strong>Online:</strong> `+item.players+`<br>
+            <strong>MOTD:</strong> `+ item.motd + `<br>
+            <strong>Flavor:</strong> `+ item.flavor + `<br>
+            <strong>Release:</strong> `+ item.release + `<br>
+            <strong>Game Mode:</strong> `+ item.gamemode + `<br>
+            <strong>World Type:</strong> `+ item.worldtype + `<br>
+            <strong>Seed:</strong> `+ item.seed + `<br>
+            <strong>Whitelist On:</strong> `+ item.whitelistenabled + `<br>
+            <strong>Hardcore:</strong> `+ item.hardcore + `<br>
+            <strong>PVP:</strong> `+ item.pvp + `<br>
+            <strong>Autostart:</strong> `+ item.autostart + `<br>
+            <strong>Ops:</strong> `+ item.ops + `<br>
+            <strong>Whitelisted:</strong> `+ item.whitelist + `<br>
+            <strong>Online:</strong> `+ item.players + `<br>
           </p>
         </div>
       </div>
@@ -326,21 +326,21 @@ function newServerCard(item) {
   `;
   document.getElementById("servers").appendChild(card);
   if (item.running === true) {
-    document.getElementById("addOpIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("weatherIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("daytimeIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("backupIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("saveIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("stopIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("addOpIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("weatherIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("daytimeIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("backupIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("saveIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("stopIndicator_" + item.uuid).classList.remove("hidden");
 
     if (item.whitelistenabled === true) {
-      document.getElementById("whitelistPlayerIndicator_"+item.uuid).classList.remove("hidden");
+      document.getElementById("whitelistPlayerIndicator_" + item.uuid).classList.remove("hidden");
     }
   } else {
-    document.getElementById("startIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("startIndicator_" + item.uuid).classList.remove("hidden");
   }
   if (item.amowner === true) {
-    document.getElementById("deleteIndicator_"+item.uuid).classList.remove("hidden");
-    document.getElementById("regenIndicator_"+item.uuid).classList.remove("hidden");
+    document.getElementById("deleteIndicator_" + item.uuid).classList.remove("hidden");
+    document.getElementById("regenIndicator_" + item.uuid).classList.remove("hidden");
   }
 }
