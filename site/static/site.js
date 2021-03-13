@@ -355,22 +355,22 @@ function newServerCardV2(item) {
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink`+ item.uuid + `">
             <li>
-              <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="dropdown-item" onClick="whitelistAdd('` + item.uuid + `')">
+              <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="dropdown-item disabled" onClick="whitelistAdd('` + item.uuid + `')">
                 <i class="bi-person-plus text-success"></i> Whitelist Player
               </a>
             </li>
             <li>
-              <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="dropdown-item" onClick="addOp('` + item.uuid + `')">
+              <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="dropdown-item disabled" onClick="addOp('` + item.uuid + `')">
                 <i class="bi-person-lines-fill text-info"></i> Add Op
               </a>
             </li>
             <li>
-              <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="dropdown-item" onClick="weatherClear('` + item.uuid + `')">
+              <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="dropdown-item disabled" onClick="weatherClear('` + item.uuid + `')">
                 <i class="bi-cloud-sun text-primary"></i> Weather Clear
               </a>
             </li>
             <li>
-              <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="dropdown-item" onClick="setDaytime('` + item.uuid + `')">
+              <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="dropdown-item disabled" onClick="setDaytime('` + item.uuid + `')">
                 <i class="bi-sunrise text-warning"></i> Set Daytime
               </a>
             </li>
@@ -380,12 +380,12 @@ function newServerCardV2(item) {
               </a>
             </li>
             <li>
-              <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item" onClick="saveServer('` + item.uuid + `')">
+              <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item disabled" onClick="saveServer('` + item.uuid + `')">
                 <i class="bi-save2 text-success"></i> Save
               </a>
             </li>
             <li>
-              <a id="deleteIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item" onClick="deleteServer('` + item.name + `', '` + item.uuid + `')">
+              <a id="deleteIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item disabled" onClick="deleteServer('` + item.name + `', '` + item.uuid + `')">
                 <i class="bi-trash text-danger"></i> DELETE
               </a>
             </li>
@@ -536,33 +536,31 @@ function refreshServerCard(serverData) {
 
 function updateCardActionButtons(serverData) {
   if (serverData.running === true) {
-    //document.getElementById("addOpIndicator_" + item.uuid).classList.remove("hidden");
-    //document.getElementById("weatherIndicator_" + item.uuid).classList.remove("hidden");
-    //document.getElementById("daytimeIndicator_" + item.uuid).classList.remove("hidden");
-    //document.getElementById("backupIndicator_" + item.uuid).classList.remove("hidden");
-    //document.getElementById("saveIndicator_" + item.uuid).classList.remove("hidden");
-    //document.getElementById("stopIndicator_" + item.uuid).classList.remove("btn-secondary");
-    //document.getElementById("stopIndicator_" + item.uuid).classList.add("btn-danger");
+    document.getElementById("addOpIndicator_" + serverData.uuid).classList.remove("disabled");
+    document.getElementById("weatherIndicator_" + serverData.uuid).classList.remove("disabled");
+    document.getElementById("daytimeIndicator_" + serverData.uuid).classList.remove("disabled");
+    document.getElementById("saveIndicator_" + serverData.uuid).classList.remove("disabled");
     document.getElementById("startIndicator_" + serverData.uuid).setAttribute("disabled", true);
     document.getElementById("stopIndicator_" + serverData.uuid).removeAttribute("disabled");
 
     if (serverData.whitelistenabled === true) {
-      //document.getElementById("whitelistPlayerIndicator_" + item.uuid).classList.remove("hidden");
+      document.getElementById("whitelistPlayerIndicator_" + serverData.uuid).classList.remove("disabled");
     }
   } else {
-    //document.getElementById("startIndicator_" + item.uuid).classList.remove("btn-secondary");
-    //document.getElementById("startIndicator_" + item.uuid).classList.add("btn-success");
+    document.getElementById("whitelistPlayerIndicator_" + serverData.uuid).classList.add("disabled");
+    document.getElementById("addOpIndicator_" + serverData.uuid).classList.add("disabled");
+    document.getElementById("weatherIndicator_" + serverData.uuid).classList.add("disabled");
+    document.getElementById("daytimeIndicator_" + serverData.uuid).classList.add("disabled");
+    document.getElementById("saveIndicator_" + serverData.uuid).classList.add("disabled");
     document.getElementById("stopIndicator_" + serverData.uuid).setAttribute("disabled", true);
     document.getElementById("startIndicator_" + serverData.uuid).removeAttribute("disabled");
   }
   if (serverData.amowner === true) {
-    //document.getElementById("regenIndicator_" + item.uuid).classList.remove("btn-secondary");
-    //document.getElementById("regenIndicator_" + item.uuid).classList.add("btn-warning");
     document.getElementById("regenIndicator_" + serverData.uuid).removeAttribute("disabled");
-    document.getElementById("deleteIndicator_" + serverData.uuid).removeAttribute("disabled");
+    document.getElementById("deleteIndicator_" + serverData.uuid).classList.remove("disabled");
   } else {
     document.getElementById("regenIndicator_" + serverData.uuid).setAttribute("disabled", true);
-    document.getElementById("deleteIndicator_" + serverData.uuid).setAttribute("disabled", true);
+    document.getElementById("deleteIndicator_" + serverData.uuid).classList.add("disabled");
   }
 }
 
