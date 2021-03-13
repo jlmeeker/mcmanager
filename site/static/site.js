@@ -182,7 +182,7 @@ function fetchNews() {
 }
 
 function refreshNews(data) {
-  var entries = Object.entries(data);
+  var entries = Object.entries(data.news);
   if (entries.length > 0) {
     document.getElementById("news").innerHTML = "";
     for (const item of entries) {

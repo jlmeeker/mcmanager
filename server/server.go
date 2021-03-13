@@ -158,11 +158,11 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 		err = s.AddOpOffline(owner, pUUID, true)
 
 		if s.WhitelistEnabled() {
-			err = s.WhitelistAddOffline(owner, pUUID, true)
+			err = s.AddWhitelistOffline(owner, pUUID, true)
 		}
 
 		err = storage.SetupServerBackup(s.UUID)
-		err = storage.AuditWrite(s.Owner, "create", fmt.Sprintf("created server %s", s.UUID))
+		storage.AuditWrite(s.Owner, "create", fmt.Sprintf("created server %s", s.UUID))
 		break
 	}
 
@@ -232,6 +232,11 @@ func LoadServers() error {
 // the force option is to ignore errors from loading the ops.json file
 // like happens when one doesn't exist.
 func (s *Server) AddOpOffline(opName, uuid string, force bool) error {
+	opName = strings.TrimSpace(opName)
+	if opName == "" {
+		return fmt.Errorf("cannot op that user")
+	}
+
 	ops, err := s.LoadOps()
 	if err != nil && force == false {
 		return err
@@ -251,23 +256,76 @@ func (s *Server) AddOpOffline(opName, uuid string, force bool) error {
 
 // AddOpOnline will add a user as an op using rcon
 func (s *Server) AddOpOnline(opName string) error {
+	opName = strings.TrimSpace(opName)
+
 	if opName == "" {
 		return fmt.Errorf("cannot op that user")
 	}
 
-	var err error
-	for err == nil {
-		_, err = s.rcon(fmt.Sprintf("op %s", opName))
-		err = storage.AuditWrite("server_AddOpOnline", "op:add", fmt.Sprintf("opped %s on %s", opName, s.UUID))
-
-		if s.WhitelistEnabled() {
-			err = s.WhitelistAddOnline(opName)
-		}
-
-		break
+	if err := s.Backup(fmt.Sprintf("before op %s", opName)); err != nil {
+		return err
 	}
 
-	return err
+	if _, err := s.rcon(fmt.Sprintf("op %s", opName)); err != nil {
+		return err
+	}
+
+	storage.AuditWrite("server_AddOpOnline", "op:add", fmt.Sprintf("opped %s on %s", opName, s.UUID))
+
+	if err := s.Backup(fmt.Sprintf("after op %s", opName)); err != nil {
+		return err
+	}
+
+	return s.AddWhitelistOnline(opName)
+}
+
+// AddWhitelistOffline will instruct the server to whitelist a player
+func (s *Server) AddWhitelistOffline(playerName, uuid string, force bool) error {
+	playerName = strings.TrimSpace(playerName)
+	if playerName == "" {
+		return fmt.Errorf("cannot whitelist that user")
+	}
+
+	wlps, err := s.LoadWhitelist()
+	if err != nil && force == false {
+		return err
+	}
+
+	var p = WLPlayer{
+		UUID: uuid,
+		Name: playerName,
+	}
+
+	wlps = append(wlps, p)
+	storage.AuditWrite("server_AddWhitelistOffline", "create", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
+	return s.SaveWhitelist(wlps)
+}
+
+// AddWhitelistOnline will instruct the server to whitelist a player
+func (s *Server) AddWhitelistOnline(playerName string) error {
+	if !s.WhitelistEnabled() {
+		return nil
+	}
+
+	playerName = strings.TrimSpace(playerName)
+	if playerName == "" {
+		return fmt.Errorf("cannot whitelist that user")
+	}
+
+	if err := s.Backup(fmt.Sprintf("before whitelist %s", playerName)); err != nil {
+		return err
+	}
+
+	if _, err := s.rcon(fmt.Sprintf("whitelist add %s", playerName)); err != nil {
+		return err
+	}
+
+	storage.AuditWrite("server_AddWhitelistOnline", "whitelist:add", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
+
+	if err := s.Backup(fmt.Sprintf("after whitelist %s", playerName)); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Backup will instruct the server to perform a save-all operation
@@ -286,27 +344,16 @@ func (s *Server) Day() error {
 
 // Delete is WAY scary!!!
 func (s *Server) Delete() error {
-	var err error
-	for err == nil {
-		if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.SERVERDIR)) {
-			err = errors.New("refusing to delete " + s.ServerDir())
-		}
-
-		// Stop it
-		if s.IsRunning() {
-			err = s.Stop(0)
-		}
-
-		// Make sure it is stopped before removing files
-		for s.IsRunning() {
-			time.Sleep(1 * time.Second)
-		}
-
-		err = os.RemoveAll(s.ServerDir())
-		break
+	if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.SERVERDIR)) {
+		return fmt.Errorf("refusing to delete %s" + s.ServerDir())
 	}
 
-	return err
+	// Stop it
+	if err := s.Stop(0); err != nil {
+		return err
+	}
+
+	return os.RemoveAll(s.ServerDir())
 }
 
 // IsOp returns if a given player name is found in the list of server ops
@@ -509,25 +556,24 @@ func (s Server) Start() error {
 
 // Stop broadcasts a message to the server then stops it after the delay
 func (s *Server) Stop(delay int) error {
-	// Stopping a non-running server is a no-op
 	if !s.IsRunning() {
 		return nil
 	}
 
-	var err error
-	for err == nil {
-		_, err = s.rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay))
-		time.Sleep(time.Duration(delay) * time.Second)
-		_, err = s.rcon("stop")
-		break
+	if _, err := s.rcon(fmt.Sprintf("/say Server shutting down in %d seconds", delay)); err != nil {
+		return err
 	}
 
-	if err == nil {
-		for s.IsRunning() {
-			time.Sleep(1 * time.Second)
-		}
+	time.Sleep(time.Duration(delay) * time.Second)
+
+	if _, err := s.rcon("stop"); err != nil {
+		return err
 	}
-	return err
+
+	for s.IsRunning() {
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 // WeatherClear will instruct the server to perform a save-all operation
@@ -552,33 +598,6 @@ func (s *Server) Whitelist() string {
 	}
 
 	return parts[1]
-}
-
-// WhitelistAddOnline will instruct the server to whitelist a player
-func (s *Server) WhitelistAddOnline(playerName string) error {
-	_, err := s.rcon(fmt.Sprintf("whitelist add %s", playerName))
-	if err != nil {
-		return err
-	}
-	err = storage.AuditWrite("server_WhitelistAddOnline", "whitelist:add", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
-	return err
-}
-
-// WhitelistAddOffline will instruct the server to whitelist a player
-func (s *Server) WhitelistAddOffline(playerName, uuid string, force bool) error {
-	wlps, err := s.LoadWhitelist()
-	if err != nil && force == false {
-		return err
-	}
-
-	var p = WLPlayer{
-		UUID: uuid,
-		Name: playerName,
-	}
-
-	wlps = append(wlps, p)
-	err = storage.AuditWrite("server_WhitelistAddOffline", "create", fmt.Sprintf("whitelisted %s on %s", playerName, s.UUID))
-	return s.SaveWhitelist(wlps)
 }
 
 // WhitelistEnabled will instruct the server to whitelist a player

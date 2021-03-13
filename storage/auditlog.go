@@ -7,17 +7,14 @@ import (
 )
 
 // AuditWrite writes an entry to the audit log
-func AuditWrite(who, what, where string) error {
-	var err error
+func AuditWrite(who, what, where string) {
 	var dh *os.File
-
-	for err == nil {
-		dh, err = os.OpenFile(filepath.Join(STORAGEDIR, "audit.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, DEFAULTFILEPERM)
-		defer dh.Close()
-		log.SetOutput(dh)
-		log.Printf("%s [%s] %s", what, who, where)
-		break
+	dh, err := os.OpenFile(filepath.Join(STORAGEDIR, "audit.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, DEFAULTFILEPERM)
+	if err != nil {
+		log.Println(err.Error())
+		return
 	}
-
-	return err
+	log.SetOutput(dh)
+	log.Printf("%s [%s] %s", what, who, where)
+	dh.Close()
 }

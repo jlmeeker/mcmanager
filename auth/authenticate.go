@@ -17,13 +17,15 @@ import (
 // TokenCache is an in-memory cache of user tokens
 var TokenCache = make(map[string]string)
 
+// r60UN!IKL1!kfsXCeXo%Ec!mU@TUEZUn%@j0EbZKO1@Kk&JEv^S9oJ*h
+
 // Authenticate will authenticate a login request
 func Authenticate(username, password string) (string, string, error) {
 	//Auth with Minecraft version 1
 	yggdrasilClient := &yggdrasil.Client{}
 	authResponse, err := yggdrasilClient.Authenticate(username, password, "Minecraft", 1)
 	if err != nil {
-		fmt.Println("Error: " + fmt.Sprintf("%v", err))
+		fmt.Println("ygg error: " + fmt.Sprintf("%v", err))
 		return "", "", errors.New(err.ErrorMessage)
 	}
 
