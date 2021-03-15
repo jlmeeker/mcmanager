@@ -4,17 +4,16 @@ function addOp(serverID) {
   if (opname != "" && opname != null) {
     var data = new FormData();
     data.append("opname", opname);
-    serverAction(serverID, "op/add", data);
+    serverAction(serverID, "ado", data);
   }
 }
 
 function backupServer(id) {
-  serverAction(id, "backup");
+  serverAction(id, "bkp");
 }
 
-
 function saveServer(id) {
-  serverAction(id, "save");
+  serverAction(id, "sav");
 }
 
 function deleteServer(name, id) {
@@ -22,7 +21,7 @@ function deleteServer(name, id) {
   if (r === false) {
     return false;
   }
-  serverAction(id, "delete");
+  serverAction(id, "del");
 }
 
 function regenServer(name, id) {
@@ -30,23 +29,23 @@ function regenServer(name, id) {
   if (r === false) {
     return false;
   }
-  serverAction(id, "regen");
+  serverAction(id, "rgn");
 }
 
 function setDaytime(id) {
-  serverAction(id, "time/day");
+  serverAction(id, "day");
 }
 
 function startServer(id) {
-  serverAction(id, "start");
+  serverAction(id, "sta");
 }
 
 function stopServer(id) {
-  serverAction(id, "stop");
+  serverAction(id, "sto");
 }
 
 function weatherClear(id) {
-  serverAction(id, "weather/clear");
+  serverAction(id, "wea");
 }
 
 function whitelistAdd(serverID) {
@@ -54,7 +53,7 @@ function whitelistAdd(serverID) {
   if (playername != "") {
     var data = new FormData();
     data.append("playername", playername);
-    serverAction(serverID, "whitelist/add", data);
+    serverAction(serverID, "adw", data);
   }
 }
 
@@ -67,7 +66,7 @@ function serverAction(id, action, formdata) {
         document.getElementById('successToastBody').innerText = "Action successful";
         toastList[0].show(); // successToast
 
-        if (action == "delete") {
+        if (action == "del") {
           document.getElementById("servers").removeChild(document.getElementById(id));
         }
       } else {
@@ -77,7 +76,7 @@ function serverAction(id, action, formdata) {
       fetchServers();
     }
   };
-  xhttp.open("POST", "/api/v1/" + action + "/" + id, true);
+  xhttp.open("POST", "/api/v1/server/" + id + "/" + action, true);
 
   if (formdata instanceof Object) {
     xhttp.send(formdata);
@@ -257,93 +256,6 @@ function refreshServers(data) {
 
 function newServerCard(item) {
   var card = document.createElement("div");
-  card.classList.add("col-sm-6", "col-lg-6", "mb-4");
-  card.id = item.uuid;
-  card.innerHTML = `
-    <div class="card shadow">
-        <h4 class="card-header bg-light shadow">`+ item.name + `
-          <div class="mb-0" style="float: right;">
-            <a id="regenIndicator_`+ item.uuid + `" title="regen world (DESTRUCTIVE)" href="#" class="hidden" onClick="regenServer('` + item.name + `', '` + item.uuid + `')">
-              <i class="bi-card-image text-success"></i>
-            </a>
-            <a id="startIndicator_`+ item.uuid + `" title="start" href="#" class="hidden" onClick="startServer('` + item.uuid + `')">
-              <i class="bi-caret-right-square text-success"></i>
-            </a>
-            <a id="stopIndicator_`+ item.uuid + `" title="stop" href="#" class="hidden" onClick="stopServer('` + item.uuid + `')">
-              <i class="bi-exclamation-square text-warning"></i>
-            </a>
-            <a id="deleteIndicator_`+ item.uuid + `" title="delete (DESTRUCTIVE)" href="#" onclick="deleteServer('` + item.name + `', '` + item.uuid + `')" class="hidden">
-              <i class="bi-x-square text-danger"></i>
-            </a>
-          </div>
-        </h4>
-        <h4 class="card-header">
-          <div class="mb-0">
-            <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="hidden" onClick="whitelistAdd('` + item.uuid + `')">
-              <i class="bi-person-plus text-success"></i>
-            </a>
-            <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="hidden" onClick="addOp('` + item.uuid + `')">
-              <i class="bi-person-lines-fill text-info"></i>
-            </a>
-            <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="hidden" onClick="weatherClear('` + item.uuid + `')">
-              <i class="bi-cloud-sun text-primary"></i>
-            </a>
-            <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="hidden" onClick="setDaytime('` + item.uuid + `')">
-              <i class="bi-sunrise text-warning"></i>
-            </a>
-            <a id="backupIndicator_`+ item.uuid + `" title="backup" href="#" class="hidden" onClick="backupServer('` + item.uuid + `')">
-            <i class="bi-filter-square text-primary"></i>
-            </a>
-            <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="hidden" onClick="saveServer('` + item.uuid + `')">
-              <i class="bi-save2 text-success"></i>
-            </a>
-          </div>
-        </h4>
-        <div class="card-body bg-light servercard">
-          <h6 class="card-title"><strong>Server Address:</strong> <br /><span class="text-success">`+ hostname + ":" + item.port + `</span></h6>
-          <p class="card-text">
-            <strong>MOTD:</strong> `+ item.motd + `<br>
-            <strong>Flavor:</strong> `+ item.flavor + `<br>
-            <strong>Release:</strong> `+ item.release + `<br>
-            <strong>Game Mode:</strong> `+ item.gamemode + `<br>
-            <strong>World Type:</strong> `+ item.worldtype + `<br>
-            <strong>Seed:</strong> `+ item.seed + `<br>
-            <strong>Whitelist On:</strong> `+ item.whitelistenabled + `<br>
-            <strong>Hardcore:</strong> `+ item.hardcore + `<br>
-            <strong>PVP:</strong> `+ item.pvp + `<br>
-            <strong>Autostart:</strong> `+ item.autostart + `<br>
-            <strong>Ops:</strong> `+ item.ops + `<br>
-            <strong>Whitelisted:</strong> `+ item.whitelist + `<br>
-            <strong>Online:</strong> `+ item.players + `<br>
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
-  document.getElementById("servers").appendChild(card);
-  if (item.running === true) {
-    document.getElementById("addOpIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("weatherIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("daytimeIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("backupIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("saveIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("stopIndicator_" + item.uuid).classList.remove("hidden");
-
-    if (item.whitelistenabled === true) {
-      document.getElementById("whitelistPlayerIndicator_" + item.uuid).classList.remove("hidden");
-    }
-  } else {
-    document.getElementById("startIndicator_" + item.uuid).classList.remove("hidden");
-  }
-  if (item.amowner === true) {
-    document.getElementById("deleteIndicator_" + item.uuid).classList.remove("hidden");
-    document.getElementById("regenIndicator_" + item.uuid).classList.remove("hidden");
-  }
-}
-
-
-function newServerCardV2(item) {
-  var card = document.createElement("div");
   card.classList.add("scard", "col-sm-6", "col-md-6", "col-lg-4", "mb-4");
   card.id = item.uuid;
   card.innerHTML = `
@@ -355,38 +267,53 @@ function newServerCardV2(item) {
           </a>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink`+ item.uuid + `">
             <li>
-              <a id="whitelistPlayerIndicator_`+ item.uuid + `" title="whitelist player" href="#" class="dropdown-item disabled" onClick="whitelistAdd('` + item.uuid + `')">
+              <a id="adw_`+ item.uuid + `" title="whitelist player" href="#" class="dropdown-item disabled" onClick="whitelistAdd('` + item.uuid + `')">
                 <i class="bi-person-plus text-success"></i> Whitelist Player
               </a>
             </li>
             <li>
-              <a id="addOpIndicator_`+ item.uuid + `" title="add op" href="#" class="dropdown-item disabled" onClick="addOp('` + item.uuid + `')">
+              <a id="ado_`+ item.uuid + `" title="add op" href="#" class="dropdown-item disabled" onClick="addOp('` + item.uuid + `')">
                 <i class="bi-person-lines-fill text-info"></i> Add Op
               </a>
             </li>
             <li>
-              <a id="weatherIndicator_`+ item.uuid + `" title="clear weather" href="#" class="dropdown-item disabled" onClick="weatherClear('` + item.uuid + `')">
+              <a id="wea_`+ item.uuid + `" title="clear weather" href="#" class="dropdown-item disabled" onClick="weatherClear('` + item.uuid + `')">
                 <i class="bi-cloud-sun text-primary"></i> Weather Clear
               </a>
             </li>
             <li>
-              <a id="daytimeIndicator_`+ item.uuid + `" title="make daytime" href="#" class="dropdown-item disabled" onClick="setDaytime('` + item.uuid + `')">
+              <a id="day_`+ item.uuid + `" title="make daytime" href="#" class="dropdown-item disabled" onClick="setDaytime('` + item.uuid + `')">
                 <i class="bi-sunrise text-warning"></i> Set Daytime
               </a>
             </li>
             <li>
-              <a id="backupIndicator_`+ item.uuid + `" title="backup" href="#" class="dropdown-item" onClick="backupServer('` + item.uuid + `')">
+              <a id="bkp_`+ item.uuid + `" title="backup" href="#" class="dropdown-item" onClick="backupServer('` + item.uuid + `')">
                 <i class="bi-filter-square text-primary"></i> Backup
               </a>
             </li>
             <li>
-              <a id="saveIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item disabled" onClick="saveServer('` + item.uuid + `')">
+              <a id="sav_`+ item.uuid + `" title="save" href="#" class="dropdown-item disabled" onClick="saveServer('` + item.uuid + `')">
                 <i class="bi-save2 text-success"></i> Save
               </a>
             </li>
             <li>
-              <a id="deleteIndicator_`+ item.uuid + `" title="save" href="#" class="dropdown-item disabled" onClick="deleteServer('` + item.name + `', '` + item.uuid + `')">
-                <i class="bi-trash text-danger"></i> DELETE
+              <a id="rgn_`+ item.uuid + `" title="regen" href="#" class="dropdown-item disabled" onClick="regenServer('` + item.name + `', '` + item.uuid + `')">
+                <i class="bi-card-image text-warning"></i> REGEN
+              </a>
+            </li>
+            <li>
+              <a id="sta_`+ item.uuid + `" title="start" href="#" class="dropdown-item disabled" onClick="startServer('` + item.uuid + `')">
+                <i class="bi-caret-right-square text-success"></i> Start
+              </a>
+            </li>
+            <li>
+              <a id="sto_`+ item.uuid + `" title="stop" href="#" class="dropdown-item disabled" onClick="stopServer('` + item.uuid + `')">
+                <i class="bi-exclamation-octagon text-danger"></i> Stop
+              </a>
+            </li>
+            <li>
+              <a id="del_`+ item.uuid + `" title="delete" href="#" class="dropdown-item disabled" onClick="deleteServer('` + item.name + `', '` + item.uuid + `')">
+                <i class="bi-trash text-black"></i> DELETE
               </a>
             </li>
           </ul>
@@ -410,28 +337,6 @@ function newServerCardV2(item) {
                   </h4>
                   <h4 id="motd_`+ item.uuid + `" class="serverMOTD">` + item.motd + `</h4>
                 </div>
-              </div>
-            </div>
-          
-          </div>
-          <div class="carousel-item">
-            <div class="card-body bg-light">
-              <div class="servercard">
-                <div class="text-center">
-                  <button id="regenIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-warning border-warning" title="regen world (DESTRUCTIVE)" href="#" onclick="regenServer('` + item.name + `', '` + item.uuid + `')" disabled>
-                    <i class="bi-card-image"></i>
-                  </button>
-                  <br />
-                  <br />
-                  <button id="startIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-success border-success" title="start" href="#" onClick="startServer('` + item.uuid + `')" disabled>
-                    <i class="bi-caret-right-square"></i>
-                  </button>
-                  <br />
-                  <br />
-                  <button id="stopIndicator_`+ item.uuid + `" type="button" class="btn btn-lg btn-light text-danger border-danger" title="stop" href="#" onClick="stopServer('` + item.uuid + `')" disabled>
-                    <i class="bi-exclamation-octagon"></i>
-                  </button>
-                  </div>
               </div>
             </div>
           </div>
@@ -507,7 +412,7 @@ function newServerCardV2(item) {
 function refreshServerCard(serverData) {
   var svr = document.getElementById(serverData.uuid);
   if (svr === null) {
-    newServerCardV2(serverData);
+    newServerCard(serverData);
     return
   }
   var props = ["address", "flavor", "motd", "name", "online", "players", "release", "running"];
@@ -535,32 +440,15 @@ function refreshServerCard(serverData) {
 }
 
 function updateCardActionButtons(serverData) {
-  if (serverData.running === true) {
-    document.getElementById("addOpIndicator_" + serverData.uuid).classList.remove("disabled");
-    document.getElementById("weatherIndicator_" + serverData.uuid).classList.remove("disabled");
-    document.getElementById("daytimeIndicator_" + serverData.uuid).classList.remove("disabled");
-    document.getElementById("saveIndicator_" + serverData.uuid).classList.remove("disabled");
-    document.getElementById("startIndicator_" + serverData.uuid).setAttribute("disabled", true);
-    document.getElementById("stopIndicator_" + serverData.uuid).removeAttribute("disabled");
-
-    if (serverData.whitelistenabled === true) {
-      document.getElementById("whitelistPlayerIndicator_" + serverData.uuid).classList.remove("disabled");
+  const perms = serverData.perms;
+  for (const perm in perms) {
+    document.getElementById(perm + "_" + serverData.uuid).classList.add("disabled");
+    if (perms[perm].allowed === true) {
+      if (perms[perm].reqRunning && !serverData.running) {
+        continue;
+      }
+      document.getElementById(perm + "_" + serverData.uuid).classList.remove("disabled");
     }
-  } else {
-    document.getElementById("whitelistPlayerIndicator_" + serverData.uuid).classList.add("disabled");
-    document.getElementById("addOpIndicator_" + serverData.uuid).classList.add("disabled");
-    document.getElementById("weatherIndicator_" + serverData.uuid).classList.add("disabled");
-    document.getElementById("daytimeIndicator_" + serverData.uuid).classList.add("disabled");
-    document.getElementById("saveIndicator_" + serverData.uuid).classList.add("disabled");
-    document.getElementById("stopIndicator_" + serverData.uuid).setAttribute("disabled", true);
-    document.getElementById("startIndicator_" + serverData.uuid).removeAttribute("disabled");
-  }
-  if (serverData.amowner === true) {
-    document.getElementById("regenIndicator_" + serverData.uuid).removeAttribute("disabled");
-    document.getElementById("deleteIndicator_" + serverData.uuid).classList.remove("disabled");
-  } else {
-    document.getElementById("regenIndicator_" + serverData.uuid).setAttribute("disabled", true);
-    document.getElementById("deleteIndicator_" + serverData.uuid).classList.add("disabled");
   }
 }
 

@@ -43,6 +43,24 @@ func Hostname(flagValue string) {
 	HOSTNAME = hn
 }
 
+//AuthorizeMiddleware middleware
+func AuthorizeMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		playerName, _ := c.Cookie("player")
+		serverID := c.Param("serverid")
+		action := c.Param("action")
+		if s, ok := Servers[serverID]; ok {
+			perms := s.PlayerPerms(playerName)
+			if perms[action].Allowed {
+				c.Next()
+				return
+			}
+		}
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
+
+/*
 //AuthorizeOpMiddleware middleware
 func AuthorizeOpMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -72,6 +90,7 @@ func AuthorizeOwnerMiddleware() gin.HandlerFunc {
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
+*/
 
 // Servers is the global list of managed servers
 var Servers = make(map[string]Server)
@@ -424,6 +443,46 @@ func (s *Server) Ops() []Op {
 	return ops
 }
 
+// PlayerIsOp checks if the given player name is in the lits of ops
+func (s *Server) PlayerIsOp(playerName string) bool {
+	ops := s.Ops()
+	for _, op := range ops {
+		if op.Name == playerName {
+			return true
+		}
+	}
+	return false
+}
+
+// PlayerIsWhitelisted checks if the given player name is in the lits of ops
+func (s *Server) PlayerIsWhitelisted(playerName string) bool {
+	wlist, _ := s.LoadWhitelist()
+	for _, p := range wlist {
+		if p.Name == playerName {
+			return true
+		}
+	}
+	return false
+}
+
+// PlayerPerms returns the server permissions of the given player name
+func (s *Server) PlayerPerms(playerName string) Permissions {
+	var perms = PermissionsPlayer()
+
+	for _, op := range s.Ops() {
+		if op.Name == playerName {
+			perms = PermissionsOp()
+			break
+		}
+	}
+
+	if playerName == s.Owner {
+		perms = PermissionsOwner()
+	}
+
+	return perms
+}
+
 // Players gets player list
 func (s *Server) Players() []string {
 	var players []string
@@ -576,6 +635,36 @@ func (s *Server) Stop(delay int) error {
 	return nil
 }
 
+// WebView returns a web-formatted view of the server
+func (s *Server) WebView(playerName string) WebView {
+	var ops []string
+	for _, op := range s.Ops() {
+		ops = append(ops, op.Name)
+	}
+	s.RefreshProperties()
+	return WebView{
+		AutoStart:        s.AutoStart,
+		Flavor:           s.Flavor,
+		GameMode:         s.Props.get("gamemode"),
+		Hardcore:         s.Props.get("hardcore"),
+		MOTD:             s.Props.get("motd"),
+		Name:             s.Name,
+		Ops:              strings.Join(ops, ", "),
+		Owner:            s.Owner,
+		Permissions:      s.PlayerPerms(playerName),
+		Players:          s.Players(),
+		PVP:              s.Props.get("pvp"),
+		Port:             s.Props.get("server-port"),
+		Release:          s.Release,
+		Running:          s.IsRunning(),
+		Seed:             s.Props.get("level-seed"),
+		UUID:             s.UUID,
+		WhiteListEnabled: s.WhitelistEnabled(),
+		WhiteList:        s.Whitelist(),
+		WorldType:        s.Props.get("level-type"),
+	}
+}
+
 // WeatherClear will instruct the server to perform a save-all operation
 func (s *Server) WeatherClear() error {
 	_, err := s.rcon("weather clear")
@@ -602,90 +691,49 @@ func (s *Server) Whitelist() string {
 
 // WhitelistEnabled will instruct the server to whitelist a player
 func (s *Server) WhitelistEnabled() bool {
-	if s.Props.get("white-list") == "true" {
-		return true
-	}
-	return false
+	return s.Props.get("white-list") == "true"
 }
 
 // WebView web view of a server instance
 type WebView struct {
-	AmOwner          bool     `json:"amowner"`
-	AutoStart        bool     `json:"autostart"`
-	Flavor           string   `json:"flavor"`
-	GameMode         string   `json:"gamemode"`
-	Hardcore         string   `json:"hardcore"`
-	MOTD             string   `json:"motd"`
-	Name             string   `json:"name"`
-	Ops              string   `json:"ops"`
-	Owner            string   `json:"owner"`
-	Players          []string `json:"players"`
-	Port             string   `json:"port"`
-	PVP              string   `json:"pvp"`
-	Release          string   `json:"release"`
-	Running          bool     `json:"running"`
-	Seed             string   `json:"seed"`
-	UUID             string   `json:"uuid"`
-	WhiteList        string   `json:"whitelist"`
-	WhiteListEnabled bool     `json:"whitelistenabled"`
-	WorldType        string   `json:"worldtype"`
+	AutoStart        bool        `json:"autostart"`
+	Flavor           string      `json:"flavor"`
+	GameMode         string      `json:"gamemode"`
+	Hardcore         string      `json:"hardcore"`
+	MOTD             string      `json:"motd"`
+	Name             string      `json:"name"`
+	Ops              string      `json:"ops"`
+	Owner            string      `json:"owner"`
+	Permissions      Permissions `json:"perms"`
+	Players          []string    `json:"players"`
+	Port             string      `json:"port"`
+	PVP              string      `json:"pvp"`
+	Release          string      `json:"release"`
+	Running          bool        `json:"running"`
+	Seed             string      `json:"seed"`
+	UUID             string      `json:"uuid"`
+	WhiteList        string      `json:"whitelist"`
+	WhiteListEnabled bool        `json:"whitelistenabled"`
+	WorldType        string      `json:"worldtype"`
 }
 
-// OpServersWebView is a web view of a list of servers
-func OpServersWebView(opName string) map[string]WebView {
+// ServersWebView is a web view of a list of servers
+func ServersWebView(playerName string) map[string]WebView {
 	var result = make(map[string]WebView)
-	if opName == "" {
-		return result
-	}
-	for _, s := range ServersWithOp(opName) {
-		var ops []string
-		for _, op := range s.Ops() {
-			ops = append(ops, op.Name)
-		}
-
-		var amowner bool
-		if opName == s.Owner {
-			amowner = true
-		}
-
-		s.RefreshProperties()
-		result[s.Name] = WebView{
-			AmOwner:          amowner,
-			AutoStart:        s.AutoStart,
-			Flavor:           s.Flavor,
-			GameMode:         s.Props.get("gamemode"),
-			Hardcore:         s.Props.get("hardcore"),
-			MOTD:             s.Props.get("motd"),
-			Name:             s.Name,
-			Ops:              strings.Join(ops, ", "),
-			Owner:            s.Owner,
-			Players:          s.Players(),
-			PVP:              s.Props.get("pvp"),
-			Port:             s.Props.get("server-port"),
-			Release:          s.Release,
-			Running:          s.IsRunning(),
-			Seed:             s.Props.get("level-seed"),
-			UUID:             s.UUID,
-			WhiteListEnabled: s.WhitelistEnabled(),
-			WhiteList:        s.Whitelist(),
-			WorldType:        s.Props.get("level-type"),
-		}
+	for _, s := range ServersWithPlayer(playerName) {
+		result[s.Name] = s.WebView(playerName)
 	}
 
 	return result
 }
 
-//ServersWithOp returns a list of servers the Op owns or is an op on
-func ServersWithOp(opName string) map[string]Server {
+//ServersWithPlayer returns a list of servers the Op owns or is an op on
+func ServersWithPlayer(playerName string) map[string]Server {
 	var servers = make(map[string]Server)
 
 	for n, s := range Servers {
-		ops := s.Ops()
-		for _, op := range ops {
-			if op.Name == opName || s.Owner == opName {
-				servers[n] = s
-				break
-			}
+		if s.IsOwner(playerName) || s.IsOp(playerName) || s.PlayerIsWhitelisted(playerName) {
+			servers[n] = s
 		}
 	}
 
