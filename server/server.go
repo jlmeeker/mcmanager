@@ -50,6 +50,10 @@ func AuthorizeMiddleware() gin.HandlerFunc {
 		serverID := c.Param("serverid")
 		action := c.Param("action")
 		if s, ok := Servers[serverID]; ok {
+			if s.Deleted {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
 			perms := s.PlayerPerms(playerName)
 			if perms[action].Allowed {
 				c.Next()
@@ -60,51 +64,20 @@ func AuthorizeMiddleware() gin.HandlerFunc {
 	}
 }
 
-/*
-//AuthorizeOpMiddleware middleware
-func AuthorizeOpMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		playerName, _ := c.Cookie("player")
-		serverID := c.Param("serverid")
-		if s, ok := Servers[serverID]; ok {
-			if s.IsOwner(playerName) || s.IsOp(playerName) {
-				c.Next()
-				return
-			}
-		}
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-}
-
-//AuthorizeOwnerMiddleware middleware
-func AuthorizeOwnerMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		playerName, _ := c.Cookie("player")
-		serverID := c.Param("serverid")
-		if s, ok := Servers[serverID]; ok {
-			if s.IsOwner(playerName) {
-				c.Next()
-				return
-			}
-		}
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-}
-*/
-
 // Servers is the global list of managed servers
 var Servers = make(map[string]Server)
 
 // Server is an instance of a server, tracked during runtime
 type Server struct {
+	AutoStart bool       `json:"autostart"`
+	Deleted   bool       `json:"deleted"`
+	Flavor    string     `json:"flavor"`
+	MaxMem    string     `json:"maxmem"`
+	MinMem    string     `json:"minmem"`
 	Name      string     `json:"name"`
 	Owner     string     `json:"owner"`
 	Props     Properties `json:"properties"`
 	Release   string     `json:"release"`
-	MaxMem    string     `json:"maxmem"`
-	MinMem    string     `json:"minmem"`
-	AutoStart bool       `json:"autostart"`
-	Flavor    string     `json:"flavor"`
 	UUID      string     `json:"uuid"`
 }
 
@@ -363,16 +336,15 @@ func (s *Server) Day() error {
 
 // Delete is WAY scary!!!
 func (s *Server) Delete() error {
-	if !filepath.HasPrefix(s.ServerDir(), filepath.Join(storage.SERVERDIR)) {
-		return fmt.Errorf("refusing to delete %s" + s.ServerDir())
-	}
-
 	// Stop it
 	if err := s.Stop(0); err != nil {
 		return err
 	}
 
-	return os.RemoveAll(s.ServerDir())
+	s.AutoStart = false
+	s.Deleted = true
+	s.SaveManagedJSON()
+	return s.Backup("deleted")
 }
 
 // IsOp returns if a given player name is found in the list of server ops
@@ -732,7 +704,7 @@ func ServersWithPlayer(playerName string) map[string]Server {
 	var servers = make(map[string]Server)
 
 	for n, s := range Servers {
-		if s.IsOwner(playerName) || s.IsOp(playerName) || s.PlayerIsWhitelisted(playerName) {
+		if !s.Deleted && (s.IsOwner(playerName) || s.IsOp(playerName) || s.PlayerIsWhitelisted(playerName)) {
 			servers[n] = s
 		}
 	}
