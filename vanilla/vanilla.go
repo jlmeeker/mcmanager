@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -45,6 +46,7 @@ func RefreshReleases() error {
 	}
 
 	Releases = v
+	log.Print("vanilla: finished refreshing releases")
 	return err
 }
 

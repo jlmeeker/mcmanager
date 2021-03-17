@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
+	"github.com/jlmeeker/mcmanager/paper"
 	"github.com/jlmeeker/mcmanager/server"
 	"github.com/jlmeeker/mcmanager/storage"
 	"github.com/jlmeeker/mcmanager/vanilla"
@@ -409,9 +410,10 @@ func releases(c *gin.Context) {
 	}
 
 	var data = gin.H{
-		"result":   success,
-		"error":    "",
-		"releases": vanilla.Releases,
+		"result":  success,
+		"error":   "",
+		"vanilla": vanilla.Releases,
+		"paper":   paper.Releases,
 	}
 	if err != nil {
 		data["error"] = err.Error()

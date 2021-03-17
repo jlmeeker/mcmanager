@@ -1,13 +1,15 @@
 {{define "releases" -}}
-{{- $release := .Vanilla.Latest.Release}}
-{{- $snapshot := .Vanilla.Latest.Snapshot}}
+{{- $vanillaRelease := .Vanilla.Latest.Release}}
+{{- $vanillaSnapshot := .Vanilla.Latest.Snapshot}}
+{{- $paperRelease := .Paper.Latest.Release}}
 <div id="releases" class="row py-5">
     <div class="col-sm-6 col-lg-4 mb-4">
         <div class="card shadow text-center">
             <h4 class="card-header bg-success text-white">Latest Vanilla Release</h4>
             <div class="card-body bg-light">
                 <h5 class="card-text">{{.Vanilla.Latest.Release}}</h5>
-                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $release .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
+                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $vanillaRelease
+                        .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
             </div>
         </div>
     </div>
@@ -16,7 +18,19 @@
             <h4 class="card-header bg-warning">Latest Vanilla Snapshot</h4>
             <div class="card-body bg-light">
                 <h5 class="card-text">{{.Vanilla.Latest.Snapshot}}</h5>
-                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $snapshot .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
+                <p class="card-text"><small class="text-muted">{{range .Vanilla.Versions}}{{if eq $vanillaSnapshot
+                        .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4 mb-4">
+        <div class="card shadow text-center">
+            <h4 class="card-header bg-primary text-white">Latest Paper Release</h4>
+            <div class="card-body bg-light">
+                <h5 class="card-text">{{.Paper.Latest.Release}} (build {{range .Paper.Versions}}{{if eq $paperRelease
+                    .ID}}{{.Build}}{{end}}{{end}})</h5>
+                <p class="card-text"><small class="text-muted">{{range .Paper.Versions}}{{if eq $paperRelease
+                        .ID}}{{.ReleaseTime}}{{end}}{{end}}</small></p>
             </div>
         </div>
     </div>

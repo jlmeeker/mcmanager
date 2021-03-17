@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/forms"
+	"github.com/jlmeeker/mcmanager/paper"
 	"github.com/jlmeeker/mcmanager/rcon"
 	"github.com/jlmeeker/mcmanager/releases"
 	"github.com/jlmeeker/mcmanager/spigot"
@@ -113,6 +114,8 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 				err = vanilla.DownloadReleases([]string{s.Release})
 			case "spigot":
 				err = spigot.Build(s.Release)
+			case "paper":
+				err = paper.DownloadReleases([]string{s.Release})
 			}
 		}
 

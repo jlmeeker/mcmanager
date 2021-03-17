@@ -12,6 +12,7 @@ import (
 
 	"github.com/jlmeeker/mcmanager/auth"
 	"github.com/jlmeeker/mcmanager/mcmhttp"
+	"github.com/jlmeeker/mcmanager/paper"
 	"github.com/jlmeeker/mcmanager/server"
 	"github.com/jlmeeker/mcmanager/storage"
 	"github.com/jlmeeker/mcmanager/vanilla"
@@ -58,10 +59,15 @@ func main() {
 	}
 
 	go func() {
-		//var err error
+		var err error
 		for {
 
 			err = vanilla.RefreshReleases()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+			err = paper.RefreshReleases()
 			if err != nil {
 				fmt.Println(err.Error())
 			}

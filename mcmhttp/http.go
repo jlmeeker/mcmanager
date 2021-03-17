@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jlmeeker/mcmanager/apiv1"
 	"github.com/jlmeeker/mcmanager/auth"
+	"github.com/jlmeeker/mcmanager/paper"
 	"github.com/jlmeeker/mcmanager/releases"
 	"github.com/jlmeeker/mcmanager/vanilla"
 )
@@ -71,6 +72,7 @@ type PageData struct {
 	Releases      struct {
 		Flavors []string
 		Vanilla releases.VersionFile
+		Paper   releases.VersionFile
 	}
 	//Servers map[string]server.WebView
 	Status struct {
@@ -93,6 +95,7 @@ func viewHandler(c *gin.Context) {
 	}
 	pd.Releases.Flavors = releases.FLAVORS
 	pd.Releases.Vanilla = vanilla.Releases
+	pd.Releases.Paper = paper.Releases
 
 	token, _ := c.Cookie("token")
 	playerName, _ := c.Cookie("player")
