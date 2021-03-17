@@ -86,6 +86,7 @@ $ mcmanager --storage <path/to/storagedir>
   - [x] vanilla
   - [x] spigot
   - [ ] craftbukkit
+  - [x] paper
   - plugins:
     - [ ] upload jar
     - [ ] upload config
