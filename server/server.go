@@ -572,7 +572,38 @@ func (s Server) Start() error {
 		return errors.New("server already running")
 	}
 
-	var args = []string{"-Xms512M", "-Xmx2G", "-jar", s.Release + ".jar", "--nogui"}
+	if s.MaxMem == "" {
+		s.MaxMem = "6G"
+	}
+	if s.MinMem == "" {
+		s.MinMem = s.MaxMem
+	}
+
+	var args = []string{
+		"-Xms" + s.MinMem,
+		"-Xmx" + s.MaxMem,
+		"-XX:+UseG1GC",
+		"-XX:+ParallelRefProcEnabled",
+		"-XX:MaxGCPauseMillis=200",
+		"-XX:+UnlockExperimentalVMOptions",
+		"-XX:+DisableExplicitGC",
+		"-XX:+AlwaysPreTouch",
+		"-XX:G1NewSizePercent=30",
+		"-XX:G1MaxNewSizePercent=40",
+		"-XX:G1HeapRegionSize=8M",
+		"-XX:G1ReservePercent=20",
+		"-XX:G1HeapWastePercent=5",
+		"-XX:G1MixedGCCountTarget=4",
+		"-XX:InitiatingHeapOccupancyPercent=15",
+		"-XX:G1MixedGCLiveThresholdPercent=90",
+		"-XX:G1RSetUpdatingPauseTimePercent=5",
+		"-XX:SurvivorRatio=32",
+		"-XX:+PerfDisableSharedMem",
+		"-XX:MaxTenuringThreshold=1",
+		"-Dusing.aikars.flags=https://mcflags.emc.gs",
+		"-Daikars.new.flags=true",
+		"-jar", s.Release + ".jar",
+		"--nogui"}
 	var cwd = s.ServerDir()
 	var cmd = exec.Command("java", args...)
 	cmd.Dir = cwd
