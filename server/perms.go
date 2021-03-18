@@ -20,6 +20,7 @@ func newPermissions() Permissions {
 	p["rgn"] = Permission{Name: "Regen World"}
 	p["sta"] = Permission{Name: "Start"}
 	p["sto"] = Permission{Name: "Stop", RequireRunning: true}
+	p["upg"] = Permission{Name: "Upgrade to latest release"}
 	return p
 }
 
@@ -42,6 +43,7 @@ func PermissionsOwner() Permissions {
 		"rgn",
 		"sta",
 		"sto",
+		"upg",
 	}
 
 	return allowPerms(allowed, PermissionsOp())

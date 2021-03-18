@@ -44,6 +44,10 @@ function stopServer(id) {
   serverAction(id, "sto");
 }
 
+function upgradeServer(id) {
+  serverAction(id, "upg");
+}
+
 function weatherClear(id) {
   serverAction(id, "wea");
 }
@@ -162,6 +166,24 @@ function logout() {
   xhttp.send();
   return false;
 }
+
+// Releases
+function fetchReleases() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function () {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        window.releases = JSON.parse(this.responseText);
+      } else {
+        document.getElementById('dangerToastBody').innerText = "Error getting releases";
+        toastList[1].show(); // dangerToast
+      }
+    }
+  };
+  xhttp.open("GET", "/api/v1/releases", true);
+  xhttp.send();
+}
+
 
 // News
 function fetchNews() {
@@ -401,6 +423,9 @@ function newServerCard(item) {
         <div class="float-end col-4 footer-text">
           <strong>Release</strong><br />
           <span id="release_`+ item.uuid + `">` + item.release + `</span>
+          <a id="upgrade_` + item.uuid + `" title="upgrade" href="#" class="hidden" onClick="upgradeServer('` + item.uuid + `')">
+            <i class="bi-arrow-up-circle text-success"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -430,6 +455,16 @@ function refreshServerCard(serverData) {
       val = listToVertical(serverData.players);
     } else {
       val = serverData[props[i]];
+
+      if (props[i] == "release") {
+        //console.log("window", window.releases[serverData["flavor"]].latest.release);
+        //console.log("val", val);
+        if (window.releases[serverData["flavor"]].latest.release != val) {
+          document.getElementById("upgrade_" + serverData.uuid).classList.remove("hidden");
+        } else {
+          document.getElementById("upgrade_" + serverData.uuid).classList.add("hidden");
+        }
+      }
     }
 
     if (ele.innerHTML != val) {
@@ -442,6 +477,9 @@ function refreshServerCard(serverData) {
 function updateCardActionButtons(serverData) {
   const perms = serverData.perms;
   for (const perm in perms) {
+    if (perm == "upg") {
+      continue;
+    }
     document.getElementById(perm + "_" + serverData.uuid).classList.add("disabled");
     if (perms[perm].allowed === true) {
       if (perms[perm].reqRunning && !serverData.running) {

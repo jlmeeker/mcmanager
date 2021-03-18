@@ -1,4 +1,5 @@
 {{ define "nav"}}
+<script>setInterval(fetchReleases, 300000);</script>
 <div id="nav" class="row">
     <nav class="navbar navbar-expand-md navbar-light bg-light shadow-lg">
         <div class="container">
@@ -28,4 +29,5 @@
 </div>
 {{- template "newserverform" .}}
 {{- template "loginform" .}}
+<script>fetchReleases();</script>
 {{- end}}

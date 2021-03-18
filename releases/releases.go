@@ -15,10 +15,10 @@ type Version struct {
 // VersionFile is the structure of the version_manifest.json file
 type VersionFile struct {
 	Latest struct {
-		Release  string
-		Snapshot string
-	}
-	Versions []Version
+		Release  string `json:"release"`
+		Snapshot string `json:"snapshot"`
+	} `json:"latest"`
+	Versions []Version `json:"versions"`
 }
 
 // FlavorIsValid returns if a given flavor is in the list of FLAVORS

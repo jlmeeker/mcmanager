@@ -89,6 +89,8 @@ func doAction(c *gin.Context) {
 		start(c)
 	case "sto":
 		stop(c)
+	case "upg":
+		upgrade(c)
 	default:
 		c.AbortWithStatus(http.StatusNotFound)
 		return
@@ -493,6 +495,33 @@ func stop(c *gin.Context) {
 	} else {
 		log.Printf("stop error: %s", err.Error())
 		err = fmt.Errorf("failed to stop")
+	}
+
+	var data = gin.H{
+		"result": success,
+		"error":  "",
+	}
+	if err != nil {
+		data["error"] = err.Error()
+	}
+	c.JSON(success, data)
+}
+
+// delete stops and removes a server... permanently
+func upgrade(c *gin.Context) {
+	var success = http.StatusInternalServerError
+	var err error
+
+	serverID := c.Param("serverid")
+	s := server.Servers[serverID]
+
+	err = s.Upgrade()
+	if err == nil {
+		success = http.StatusOK
+		go server.LoadServers()
+	} else {
+		log.Printf("upgrade error: %s", err.Error())
+		err = fmt.Errorf("unable to upgrade %s: %s", s.Name, err.Error())
 	}
 
 	var data = gin.H{

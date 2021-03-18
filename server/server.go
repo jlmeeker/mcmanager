@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -108,17 +109,7 @@ func NewServer(owner string, formData forms.NewServer, port int) (Server, error)
 		}
 
 		// attempt download first (no-op if it exists)
-		if !storage.JarExists(s.Flavor, s.Release) {
-			switch s.Flavor {
-			case "vanilla":
-				err = vanilla.DownloadReleases([]string{s.Release})
-			case "spigot":
-				err = spigot.Build(s.Release)
-			case "paper":
-				err = paper.DownloadReleases([]string{s.Release})
-			}
-		}
-
+		err = s.DownloadJar()
 		err = storage.MakeServerDir(s.UUID)
 		err = writeDefaultPropertiesFile(s.ServerDir())
 		err = s.RefreshProperties()
@@ -348,6 +339,23 @@ func (s *Server) Delete() error {
 	s.Deleted = true
 	s.SaveManagedJSON()
 	return s.Backup("deleted")
+}
+
+// DownloadJar downloads the server jar
+func (s *Server) DownloadJar() error {
+	var err error
+	// attempt download first (no-op if it exists)
+	if !storage.JarExists(s.Flavor, s.Release) {
+		switch s.Flavor {
+		case "vanilla":
+			err = vanilla.DownloadReleases([]string{s.Release})
+		case "spigot":
+			err = spigot.Build(s.Release)
+		case "paper":
+			err = paper.DownloadReleases([]string{s.Release})
+		}
+	}
+	return err
 }
 
 // IsOp returns if a given player name is found in the list of server ops
@@ -639,6 +647,57 @@ func (s *Server) Stop(delay int) error {
 		time.Sleep(1 * time.Second)
 	}
 	return nil
+}
+
+func (s *Server) Upgrade() error {
+	log.Printf("upgrading %s", s.Name)
+	var wasRunning = s.IsRunning()
+	var err error
+
+	if wasRunning {
+		err = s.Stop(0)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = s.Backup("pre upgrade")
+	if err != nil {
+		return err
+	}
+
+	switch s.Flavor {
+	case "vanilla", "spigot":
+		s.Release = vanilla.Releases.Latest.Release
+	case "paper":
+		s.Release = paper.Releases.Latest.Release
+	}
+
+	err = s.SaveManagedJSON()
+	if err != nil {
+		return err
+	}
+
+	err = s.DownloadJar()
+	if err != nil {
+		return err
+	}
+
+	err = storage.DeployJar(s.Flavor, s.Release, s.UUID)
+	if err != nil {
+		return err
+	}
+
+	err = s.Backup("post upgrade")
+	if err != nil {
+		return err
+	}
+
+	if wasRunning {
+		err = s.Start()
+	}
+
+	return err
 }
 
 // WebView returns a web-formatted view of the server
