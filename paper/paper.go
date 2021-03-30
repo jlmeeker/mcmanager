@@ -16,6 +16,7 @@ import (
 var Releases releases.VersionFile
 
 func RefreshReleases() error {
+	var v releases.VersionFile
 	versions, err := getVersions()
 	if err != nil {
 		return err
@@ -32,22 +33,22 @@ func RefreshReleases() error {
 		if verr != nil {
 			continue
 		}
-		Releases.Versions = append(Releases.Versions, bld)
+		v.Versions = append(v.Versions, bld)
 	}
 
-	Releases.Latest.Release = Releases.Versions[len(Releases.Versions)-1].ID
+	v.Latest.Release = v.Versions[len(v.Versions)-1].ID
 
 	// format dates
-
-	for ndx, version := range Releases.Versions {
+	for ndx, version := range v.Versions {
 		vt, err := time.Parse("2006-01-02T15:04:05.000Z", version.ReleaseTime)
 		if err != nil {
 			log.Printf("paper time format error: %s", err.Error())
 		}
 		version.ReleaseTime = vt.Local().Format("2 Jan 2006 3:04 PM")
-		Releases.Versions[ndx] = version
+		v.Versions[ndx] = version
 	}
 
+	Releases = v
 	log.Print("paper: finished refreshing releases")
 	return nil
 }
