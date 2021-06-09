@@ -30,6 +30,12 @@ import (
 // HOSTNAME is where we store the flag value
 var HOSTNAME = "localhost"
 
+// Java version commands
+var (
+	Java8  string
+	Java16 string
+)
+
 // Hostname takes the flag value and calculates the best attempt at a hostname
 func Hostname(flagValue string) {
 	var hn string
@@ -587,6 +593,12 @@ func (s Server) Start() error {
 		s.MinMem = s.MaxMem
 	}
 
+	// Minecraft v1.17 started requiring Java 16 so we set that as the default version
+	var javaBin = Java16
+	if strings.Contains(s.Release, "1.16") {
+		javaBin = Java8
+	}
+
 	var args = []string{
 		"-Xms" + s.MinMem,
 		"-Xmx" + s.MaxMem,
@@ -613,7 +625,7 @@ func (s Server) Start() error {
 		"-jar", s.Release + ".jar",
 		"--nogui"}
 	var cwd = s.ServerDir()
-	var cmd = exec.Command("java", args...)
+	var cmd = exec.Command(javaBin, args...)
 	cmd.Dir = cwd
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
